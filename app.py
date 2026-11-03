@@ -24,7 +24,7 @@ from quizlib import (
     list_datasets,
     load_dataset,
     save_dataset,
-    score_quiz,
+    score_question,
     slug_from_filename,
 )
 
@@ -33,9 +33,29 @@ TEMPLATES = ROOT / "templates"
 STATIC_DIR = ROOT / "static"
 MAX_BODY = 2 * 1024 * 1024
 QUIZ_PATH = re.compile(r"^/quiz/([a-z0-9][a-z0-9_-]{0,79})$")
-RESULT_PATH = re.compile(
-    r"^/quiz/([a-z0-9][a-z0-9_-]{0,79})/results/([A-Za-z0-9_-]{8,80})$"
+PLAY_PATH = re.compile(
+    r"^/quiz/([a-z0-9][a-z0-9_-]{0,79})/play/([A-Za-z0-9_-]{8,80})$"
 )
+WRONG_FILTER_SCRIPT = """
+<script>
+(function () {
+  var box = document.getElementById("showWrongOnly");
+  var empty = document.getElementById("wrongEmpty");
+  if (!box) return;
+  function apply() {
+    var cards = document.querySelectorAll(".question-card[data-perfect]");
+    var missed = 0;
+    cards.forEach(function (card) {
+      var perfect = card.getAttribute("data-perfect") === "1";
+      card.hidden = box.checked && perfect;
+      if (!perfect) missed += 1;
+    });
+    if (empty) empty.hidden = !(box.checked && missed === 0);
+  }
+  box.addEventListener("change", apply);
+})();
+</script>
+""".strip()
 
 RULES_HTML = """
 <div class="rules">
@@ -151,45 +171,42 @@ def _badge(points: float, mistakes: int) -> str:
     return f'<span class="question-score {css}">{html.escape(label)}</span>'
 
 
-def render_questions(dataset: dict, graded: dict | None) -> str:
-    by_id = {}
-    if graded is not None:
-        by_id = {item["id"]: item for item in graded["questions"]}
-    blocks = []
-    for question in dataset["questions"]:
-        question_id = str(question["id"])
-        result = by_id.get(question_id)
-        reveal = result is not None
-        chosen = result["selected"] if reveal else set()
-        correct = result["correct"] if reveal else set()
-        options_html = []
-        for option in question["options"]:
-            option_id = option["id"]
-            selected = option_id in chosen
-            is_correct = option_id in correct
-            classes = ["option-label"]
-            if reveal and is_correct:
-                classes.append("correct-opt")
-            elif reveal and selected:
-                classes.append("wrong-opt")
-            checked = " checked" if reveal and selected else ""
-            disabled = " disabled" if reveal else ""
-            options_html.append(
-                f"""<label class="{" ".join(classes)}" id="label-{html.escape(question_id)}-{html.escape(option_id)}">
+def render_question_card(question: dict, result: dict | None = None, *, mark_result: bool = False) -> str:
+    reveal = result is not None
+    question_id = str(question["id"])
+    chosen = result["selected"] if reveal else set()
+    correct = result["correct"] if reveal else set()
+    options_html = []
+    for option in question["options"]:
+        option_id = option["id"]
+        selected = option_id in chosen
+        is_correct = option_id in correct
+        classes = ["option-label"]
+        if reveal and is_correct:
+            classes.append("correct-opt")
+        elif reveal and selected:
+            classes.append("wrong-opt")
+        checked = " checked" if reveal and selected else ""
+        disabled = " disabled" if reveal else ""
+        options_html.append(
+            f"""<label class="{" ".join(classes)}" id="label-{html.escape(question_id)}-{html.escape(option_id)}">
   <input type="checkbox" name="q-{html.escape(question_id)}" value="{html.escape(option_id)}"{checked}{disabled}>
   <span><strong>{html.escape(option_id)}.</strong> {text_to_html(option["text"])}</span>
 </label>"""
-            )
-        badge = _badge(result["points"], result["mistakes"]) if reveal else ""
-        explanation = ""
-        if reveal:
-            tone = "good" if result["points"] == 1.0 else "neutral"
-            explanation = (
-                f'<div class="explanation {tone}"><strong>Explanation:</strong> '
-                f'{text_to_html(question["explanation"])}</div>'
-            )
-        blocks.append(
-            f"""<article class="question-card" id="card-{html.escape(question_id)}">
+        )
+    badge = _badge(result["points"], result["mistakes"]) if reveal else ""
+    explanation = ""
+    if reveal:
+        tone = "good" if result["points"] == 1.0 else "neutral"
+        explanation = (
+            f'<div class="explanation {tone}"><strong>Explanation:</strong> '
+            f'{text_to_html(question["explanation"])}</div>'
+        )
+    perfect_attr = ""
+    if mark_result and reveal:
+        flag = "1" if result["points"] == 1.0 else "0"
+        perfect_attr = f' data-perfect="{flag}"'
+    return f"""<article class="question-card" id="card-{html.escape(question_id)}"{perfect_attr}>
   <div class="question-title">
     <span>{text_to_html(question["title"])}</span>
     {badge}
@@ -200,48 +217,148 @@ def render_questions(dataset: dict, graded: dict | None) -> str:
   </div>
   {explanation}
 </article>"""
-        )
-    return "\n".join(blocks)
 
 
-def render_quiz_page(dataset: dict, slug: str, graded: dict | None = None) -> str:
+def _page_shell(dataset: dict, slug: str, **slots: str) -> str:
     subtitle_bits = []
     if dataset["subtitle"]:
         subtitle_bits.append(f'<p class="subtitle">{text_to_html(dataset["subtitle"])}</p>')
     subtitle_bits.append(f'<p class="meta">{html.escape(slug)}.json</p>')
-    if graded is None:
-        banner = ""
-        buttons = '<button type="submit" class="btn btn-submit">Submit Test</button>'
-        form_open = f'<form id="quizForm" method="post" action="/quiz/{html.escape(slug)}">'
-        form_close = "</form>"
-    else:
-        percent = f"{(graded['total'] / graded['max']) * 100:.1f}" if graded["max"] else "0.0"
-        banner = (
-            '<div class="score-banner">'
-            "<p>Your Final Result</p>"
-            f"<h2>{graded['total']:.1f} / {graded['max']}</h2>"
-            f'<p class="score-percent">Score: {percent}%</p>'
-            "</div>"
-        )
-        buttons = (
-            f'<a class="btn btn-reset" href="/quiz/{html.escape(slug)}">Retake Quiz</a>'
-            '<a class="btn btn-secondary" href="/">Change dataset</a>'
-        )
-        form_open = '<div id="quizForm">'
-        form_close = "</div>"
-    return render_template(
-        "quiz.html",
-        {
-            "TITLE": text_to_html(dataset["title"]),
-            "SUBTITLE_BLOCK": "\n".join(subtitle_bits),
-            "RULES": RULES_HTML,
-            "BANNER": banner,
-            "FORM_OPEN": form_open,
-            "FORM_CLOSE": form_close,
-            "QUESTIONS": render_questions(dataset, graded),
-            "BUTTONS": buttons,
-        },
+    mapping = {
+        "TITLE": text_to_html(dataset["title"]),
+        "SUBTITLE_BLOCK": "\n".join(subtitle_bits),
+        "RULES": RULES_HTML,
+        "PROGRESS": "",
+        "BANNER": "",
+        "FILTER": "",
+        "FORM_OPEN": "",
+        "FORM_CLOSE": "",
+        "QUESTIONS": "",
+        "BUTTONS": "",
+        "EXTRA": "",
+    }
+    mapping.update(slots)
+    return render_template("quiz.html", mapping)
+
+
+def render_progress(index: int, total: int) -> str:
+    shown = index + 1
+    percent = 0 if total == 0 else round(shown / total * 100)
+    return (
+        '<div class="progress">'
+        f'<div class="progress-label"><span>Question {shown} of {total}</span>'
+        f"<span>{percent}%</span></div>"
+        f'<div class="progress-track"><div class="progress-fill" style="width: {percent}%"></div></div>'
+        "</div>"
     )
+
+
+def render_quiz_page(dataset: dict, slug: str, form_action: str = "") -> str:
+    """Render the first unanswered question. Used before an attempt exists."""
+    action = form_action or f"/quiz/{html.escape(slug)}"
+    question = dataset["questions"][0]
+    return _page_shell(
+        dataset,
+        slug,
+        PROGRESS=render_progress(0, len(dataset["questions"])),
+        FORM_OPEN=f'<form id="quizForm" method="post" action="{action}">',
+        FORM_CLOSE="</form>",
+        QUESTIONS=render_question_card(question),
+        BUTTONS='<button type="submit" class="btn btn-submit" name="action" value="validate">Validate</button>',
+    )
+
+
+def render_attempt_page(attempt: dict, form_action: str) -> str:
+    dataset = attempt["dataset"]
+    slug = attempt["slug"]
+    questions = dataset["questions"]
+    if attempt["phase"] == "done":
+        return render_summary_page(attempt, slug)
+    index = attempt["index"]
+    question = questions[index]
+    revealed = attempt["phase"] == "revealed"
+    result = attempt["records"][index] if revealed else None
+    button = (
+        '<button type="submit" class="btn btn-submit" name="action" value="next">Next</button>'
+        if revealed
+        else '<button type="submit" class="btn btn-submit" name="action" value="validate">Validate</button>'
+    )
+    return _page_shell(
+        dataset,
+        slug,
+        PROGRESS=render_progress(index, len(questions)),
+        FORM_OPEN=f'<form id="quizForm" method="post" action="{html.escape(form_action)}">',
+        FORM_CLOSE="</form>",
+        QUESTIONS=render_question_card(question, result),
+        BUTTONS=button,
+    )
+
+
+def render_summary_page(attempt: dict, slug: str) -> str:
+    dataset = attempt["dataset"]
+    records = attempt["records"]
+    total = sum(record["points"] for record in records)
+    maximum = len(records)
+    percent = f"{(total / maximum) * 100:.1f}" if maximum else "0.0"
+    full = sum(1 for record in records if record["points"] == 1.0)
+    half = sum(1 for record in records if record["points"] == 0.5)
+    wrong = sum(1 for record in records if record["points"] == 0.0)
+    by_id = {record["id"]: record for record in records}
+    cards = [
+        render_question_card(question, by_id[str(question["id"])], mark_result=True)
+        for question in dataset["questions"]
+        if str(question["id"]) in by_id
+    ]
+    banner = (
+        '<div class="score-banner">'
+        "<p>Your result</p>"
+        f"<h2>{total:.1f} / {maximum}</h2>"
+        f'<p class="score-percent">Score: {percent}%</p>'
+        '<div class="stat-row">'
+        f"<div class=\"stat\"><strong>{full}</strong><span>Fully correct</span></div>"
+        f"<div class=\"stat\"><strong>{half}</strong><span>Half credit</span></div>"
+        f"<div class=\"stat\"><strong>{wrong}</strong><span>Wrong</span></div>"
+        "</div></div>"
+    )
+    filter_html = (
+        '<label class="wrong-filter" for="showWrongOnly">'
+        '<input type="checkbox" id="showWrongOnly">'
+        "Show only wrong"
+        "</label>"
+        '<p id="wrongEmpty" class="empty" hidden>Nothing to show. Every question was fully correct.</p>'
+    )
+    buttons = (
+        f'<a class="btn btn-reset" href="/quiz/{html.escape(slug)}">Retake Quiz</a>'
+        '<a class="btn btn-secondary" href="/">Change dataset</a>'
+    )
+    return _page_shell(
+        dataset,
+        slug,
+        BANNER=banner,
+        FILTER=filter_html,
+        FORM_OPEN='<div id="quizForm">',
+        FORM_CLOSE="</div>",
+        QUESTIONS="\n".join(cards),
+        BUTTONS=buttons,
+        EXTRA=WRONG_FILTER_SCRIPT,
+    )
+
+
+def apply_attempt_action(attempt: dict, action: str, fields: dict[str, list[str]]) -> None:
+    questions = attempt["dataset"]["questions"]
+    index = attempt["index"]
+    if action == "validate" and attempt["phase"] == "answer" and index < len(questions):
+        question = questions[index]
+        selected = fields.get(f"q-{question['id']}", [])
+        scored = score_question(question, selected)
+        attempt["records"].append({"id": str(question["id"]), **scored})
+        attempt["phase"] = "revealed"
+    elif action == "next" and attempt["phase"] == "revealed":
+        attempt["index"] += 1
+        if attempt["index"] >= len(questions):
+            attempt["phase"] = "done"
+        else:
+            attempt["phase"] = "answer"
 
 
 def parse_multipart(body: bytes, content_type: str) -> tuple[dict[str, list[str]], dict[str, tuple[str, bytes]]]:
@@ -326,13 +443,13 @@ class QuizServer(ThreadingHTTPServer):
 
 class QuizHandler(BaseHTTPRequestHandler):
     data_dir = ROOT / "datasets"
-    results: dict[str, dict] = {}
-    results_lock = threading.Lock()
+    attempts: dict[str, dict] = {}
+    attempts_lock = threading.Lock()
 
-    def log_message(self, fmt: str, *args) -> None:
+    def log_message(self, format: str, *args) -> None:
         if os.environ.get("QUIZ_QUIET") == "1":
             return
-        super().log_message(fmt, *args)
+        super().log_message(format, *args)
 
     def send_html(self, page: str, status: int = 200) -> None:
         body = page.encode("utf-8")
@@ -395,11 +512,11 @@ class QuizHandler(BaseHTTPRequestHandler):
             return
         quiz_match = QUIZ_PATH.match(path)
         if quiz_match:
-            self.show_quiz(quiz_match.group(1))
+            self.start_attempt(quiz_match.group(1))
             return
-        result_match = RESULT_PATH.match(path)
-        if result_match:
-            self.show_result(result_match.group(1), result_match.group(2))
+        play_match = PLAY_PATH.match(path)
+        if play_match:
+            self.show_attempt(play_match.group(1), play_match.group(2))
             return
         self.show_home(status=404, error="That page does not exist.")
 
@@ -412,9 +529,9 @@ class QuizHandler(BaseHTTPRequestHandler):
             elif path == "/start":
                 self.handle_start()
             else:
-                quiz_match = QUIZ_PATH.match(path)
-                if quiz_match:
-                    self.handle_submit(quiz_match.group(1))
+                play_match = PLAY_PATH.match(path)
+                if play_match:
+                    self.handle_attempt(play_match.group(1), play_match.group(2))
                 else:
                     self.send_error(405)
         except Exception:
@@ -437,20 +554,36 @@ class QuizHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
-    def show_quiz(self, slug: str) -> None:
+    def remember_attempt(self, slug: str, dataset: dict) -> str:
+        token = secrets.token_urlsafe(16)
+        with self.attempts_lock:
+            self.attempts[token] = {
+                "slug": slug,
+                "dataset": dataset,
+                "index": 0,
+                "phase": "answer",
+                "records": [],
+            }
+            while len(self.attempts) > 100:
+                oldest = next(iter(self.attempts))
+                del self.attempts[oldest]
+        return token
+
+    def start_attempt(self, slug: str) -> None:
         dataset = load_dataset(self.data_dir, slug)
         if dataset is None:
             self.show_home(status=404, error=f"No dataset named {slug}.")
             return
-        self.send_html(render_quiz_page(dataset, slug))
+        token = self.remember_attempt(slug, dataset)
+        self.redirect(f"/quiz/{quote(slug)}/play/{quote(token)}")
 
-    def show_result(self, slug: str, token: str) -> None:
-        with self.results_lock:
-            payload = self.results.get(token)
-        if payload is None or payload.get("slug") != slug:
-            self.show_home(status=404, error="That result is no longer available. Try the quiz again.")
+    def show_attempt(self, slug: str, token: str) -> None:
+        with self.attempts_lock:
+            attempt = self.attempts.get(token)
+        if attempt is None or attempt.get("slug") != slug:
+            self.show_home(status=404, error="That quiz attempt is no longer available. Start it again from the main page.")
             return
-        self.send_html(render_quiz_page(payload["dataset"], slug, payload["graded"]))
+        self.send_html(render_attempt_page(attempt, f"/quiz/{slug}/play/{token}"))
 
     def read_form(self) -> tuple[dict[str, list[str]], dict[str, tuple[str, bytes]]] | None:
         body, error = self.read_body()
@@ -474,27 +607,22 @@ class QuizHandler(BaseHTTPRequestHandler):
             return
         self.redirect(f"/quiz/{quote(slug)}")
 
-    def handle_submit(self, slug: str) -> None:
-        dataset = load_dataset(self.data_dir, slug)
-        if dataset is None:
-            self.show_home(status=404, error=f"No dataset named {slug}.")
-            return
+    def handle_attempt(self, slug: str, token: str) -> None:
         parsed = self.read_form()
         if parsed is None:
             return
         fields, _files = parsed
-        answers = {
-            str(question["id"]): fields.get(f"q-{question['id']}", [])
-            for question in dataset["questions"]
-        }
-        graded = score_quiz(dataset, answers)
-        token = secrets.token_urlsafe(16)
-        with self.results_lock:
-            self.results[token] = {"slug": slug, "dataset": dataset, "graded": graded}
-            while len(self.results) > 100:
-                oldest = next(iter(self.results))
-                del self.results[oldest]
-        self.redirect(f"/quiz/{quote(slug)}/results/{quote(token)}")
+        with self.attempts_lock:
+            attempt = self.attempts.get(token)
+            if attempt is None or attempt.get("slug") != slug:
+                missing = True
+            else:
+                missing = False
+                apply_attempt_action(attempt, (fields.get("action") or [""])[0], fields)
+        if missing:
+            self.show_home(status=404, error="That quiz attempt is no longer available. Start it again from the main page.")
+            return
+        self.redirect(f"/quiz/{quote(slug)}/play/{quote(token)}")
 
     def handle_upload(self) -> None:
         parsed = self.read_form()

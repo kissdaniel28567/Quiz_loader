@@ -1,6 +1,8 @@
 # Quiz loader
 
-Practice quizzes in the browser. On the main page, select a dataset and try the quiz. Scoring matches the original exam rules: full credit for an exact selection, half a point for exactly one mistake, and zero after that.
+Practice quizzes in the browser. On the main page, select a dataset and try the quiz one question at a time. Validate shows the solution for the current question and turns into Next. At the end, the summary shows how you did, and Show only wrong hides the questions you got fully correct.
+
+Scoring matches the original exam rules: full credit for an exact selection, half a point for exactly one mistake, and zero after that.
 
 ## Run
 

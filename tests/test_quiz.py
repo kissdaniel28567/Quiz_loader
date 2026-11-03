@@ -117,6 +117,29 @@ class ScoringTests(unittest.TestCase):
         self.assertNotIn("<script>", page)
         self.assertIn("&lt;true&gt;", page)
         self.assertNotIn("correct-opt", page)
+        self.assertIn("Validate", page)
+        self.assertNotIn(">Next<", page)
+
+    def test_page_shows_one_question(self):
+        dataset = tiny_dataset("First", ["A"], "SECRET_ONE")
+        dataset["questions"].append(
+            {
+                "id": 2,
+                "title": "Question 2",
+                "text": "Statements for the second card.",
+                "options": [
+                    {"id": "A", "text": "Only this one"},
+                    {"id": "B", "text": "Not this one"},
+                ],
+                "correct": ["A"],
+                "explanation": "SECRET_TWO",
+            }
+        )
+        page = app.render_quiz_page(dataset, "sample")
+        self.assertIn("Statements for First.", page)
+        self.assertNotIn("Statements for the second card.", page)
+        self.assertNotIn("SECRET_TWO", page)
+        self.assertIn("Question 1 of 2", page)
 
 
 class ServerTests(unittest.TestCase):
@@ -126,7 +149,7 @@ class ServerTests(unittest.TestCase):
         cls.tmp = Path(cls._tmp.name)
         cls.previous_dir = app.QuizHandler.data_dir
         app.QuizHandler.data_dir = cls.tmp
-        app.QuizHandler.results.clear()
+        app.QuizHandler.attempts.clear()
         cls.httpd = app.QuizServer(("127.0.0.1", 0), app.QuizHandler)
         cls.port = cls.httpd.server_address[1]
         cls.base = f"http://127.0.0.1:{cls.port}"
@@ -139,7 +162,7 @@ class ServerTests(unittest.TestCase):
         cls.thread.join(timeout=5)
         cls.httpd.server_close()
         app.QuizHandler.data_dir = cls.previous_dir
-        app.QuizHandler.results.clear()
+        app.QuizHandler.attempts.clear()
         cls._tmp.cleanup()
 
     def request(self, path, data=None, headers=None):
@@ -165,29 +188,134 @@ class ServerTests(unittest.TestCase):
             data=urllib.parse.urlencode({"dataset": "beta"}).encode(),
         )
         self.assertEqual(status, 200)
-        self.assertTrue(final.endswith("/quiz/beta"))
+        self.assertIn("/quiz/beta/play/", final)
         self.assertIn("Beta Quiz", page)
         self.assertNotIn("Alpha Quiz", page)
         self.assertNotIn("BETA_REASON", page)
+        self.assertIn(">Validate<", page)
+        self.assertNotIn(">Next<", page)
+        play = urllib.parse.urlparse(final).path
 
-        status, result, final = self.request(
-            "/quiz/beta",
-            data=urllib.parse.urlencode([("q-1", "C")]).encode(),
+        status, revealed, revealed_url = self.request(
+            play,
+            data=urllib.parse.urlencode([("action", "validate"), ("q-1", "C")]).encode(),
         )
         self.assertEqual(status, 200)
-        self.assertIn("/results/", final)
-        self.assertIn("1.0 / 1", result)
-        self.assertIn("BETA_REASON", result)
-        self.assertIn("correct-opt", result)
-        self.assertIn("Score: 100.0%", result)
+        self.assertEqual(urllib.parse.urlparse(revealed_url).path, play)
+        self.assertIn("BETA_REASON", revealed)
+        self.assertIn("correct-opt", revealed)
+        self.assertIn(">Next<", revealed)
+        self.assertNotIn(">Validate<", revealed)
+        self.assertNotIn("Show only wrong", revealed)
 
+        status, summary, _final = self.request(
+            play,
+            data=urllib.parse.urlencode([("action", "next")]).encode(),
+        )
+        self.assertEqual(status, 200)
+        self.assertIn("1.0 / 1", summary)
+        self.assertIn("Score: 100.0%", summary)
+        self.assertIn("Fully correct", summary)
+        self.assertIn("Show only wrong", summary)
+        self.assertIn('data-perfect="1"', summary)
+
+        _status, _page, half_url = self.request(
+            "/start",
+            data=urllib.parse.urlencode({"dataset": "alpha"}).encode(),
+        )
+        alpha_play = urllib.parse.urlparse(half_url).path
+        self.request(
+            alpha_play,
+            data=urllib.parse.urlencode([("action", "validate"), ("q-1", "A")]).encode(),
+        )
         status, half, _final = self.request(
-            "/quiz/alpha",
-            data=urllib.parse.urlencode([("q-1", "A")]).encode(),
+            alpha_play,
+            data=urllib.parse.urlencode([("action", "next")]).encode(),
         )
         self.assertEqual(status, 200)
         self.assertIn("0.5 / 1", half)
         self.assertIn("ALPHA_REASON", half)
+        self.assertIn('data-perfect="0"', half)
+        self.assertIn("Half credit", half)
+
+    def test_next_reveals_only_the_following_question(self):
+        save_dataset(
+            self.tmp,
+            "steps",
+            {
+                "title": "Two step quiz",
+                "subtitle": "",
+                "questions": [
+                    {
+                        "id": 1,
+                        "title": "Question 1",
+                        "text": "First prompt only.",
+                        "options": [
+                            {"id": "A", "text": "True one"},
+                            {"id": "B", "text": "False one"},
+                        ],
+                        "correct": ["A"],
+                        "explanation": "FIRST_REASON",
+                    },
+                    {
+                        "id": 2,
+                        "title": "Question 2",
+                        "text": "Second prompt only.",
+                        "options": [
+                            {"id": "A", "text": "True two"},
+                            {"id": "B", "text": "False two"},
+                        ],
+                        "correct": ["B"],
+                        "explanation": "SECOND_REASON",
+                    },
+                ],
+            },
+        )
+        _status, first, final = self.request(
+            "/start",
+            data=urllib.parse.urlencode({"dataset": "steps"}).encode(),
+        )
+        play = urllib.parse.urlparse(final).path
+        self.assertIn("First prompt only.", first)
+        self.assertNotIn("Second prompt only.", first)
+        self.assertNotIn("FIRST_REASON", first)
+        self.assertIn(">Validate<", first)
+
+        _status, revealed, _url = self.request(
+            play,
+            data=urllib.parse.urlencode([("action", "validate"), ("q-1", "B")]).encode(),
+        )
+        self.assertIn("FIRST_REASON", revealed)
+        self.assertIn(">Next<", revealed)
+        self.assertNotIn("Second prompt only.", revealed)
+        self.assertIn('class="question-score score-bad"', revealed)
+
+        _status, second, _url = self.request(
+            play,
+            data=urllib.parse.urlencode([("action", "next")]).encode(),
+        )
+        self.assertIn("Second prompt only.", second)
+        self.assertNotIn("First prompt only.", second)
+        self.assertNotIn("FIRST_REASON", second)
+        self.assertNotIn("SECOND_REASON", second)
+        self.assertIn(">Validate<", second)
+        self.assertIn("Question 2 of 2", second)
+
+        self.request(
+            play,
+            data=urllib.parse.urlencode([("action", "validate"), ("q-2", "B")]).encode(),
+        )
+        _status, summary, _url = self.request(
+            play,
+            data=urllib.parse.urlencode([("action", "next")]).encode(),
+        )
+        self.assertIn("1.0 / 2", summary)
+        self.assertIn("Show only wrong", summary)
+        self.assertIn("showWrongOnly", summary)
+        self.assertIn('data-perfect="0"', summary)
+        self.assertIn('data-perfect="1"', summary)
+        self.assertIn("FIRST_REASON", summary)
+        self.assertIn("SECOND_REASON", summary)
 
     def test_upload_then_try(self):
         payload = tiny_dataset("Uploaded Quiz", ["A"], "UPLOADED_REASON")
@@ -214,9 +342,10 @@ class ServerTests(unittest.TestCase):
             data=urllib.parse.urlencode({"dataset": "uploaded_quiz"}).encode(),
         )
         self.assertEqual(status, 200)
-        self.assertTrue(final.endswith("/quiz/uploaded_quiz"))
+        self.assertIn("/quiz/uploaded_quiz/play/", final)
         self.assertIn("Statements for Uploaded Quiz.", quiz)
         self.assertNotIn("UPLOADED_REASON", quiz)
+        self.assertIn(">Validate<", quiz)
 
     def test_invalid_upload_is_rejected(self):
         boundary = "----quizboundary"
