@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz loader</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Quiz loader</h1>
+    <p class="subtitle">Choose a dataset on this page, then try the quiz.</p>
+    %%RULES%%
+  </header>
+
+  %%FLASH%%
+  %%PROBLEMS%%
+
+  <section>
+    <h2 class="section-title">Datasets</h2>
+    <p class="subtitle section-intro">Select a dataset, then try the quiz. Uploading another file adds it to this list.</p>
+    %%DATASETS%%
+  </section>
+
+  <section class="question-card" id="upload">
+    <h2>Add or replace a dataset</h2>
+    <p>Upload a JSON file. Its name becomes the dataset name. Uploading the same name replaces that dataset.</p>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <div class="file-row">
+        <input type="file" name="dataset_file" accept=".json,application/json" required>
+        <button type="submit" class="btn btn-submit">Save dataset</button>
+      </div>
+    </form>
+    <p class="upload-help">You can also put a <code>.json</code> file in the <code>datasets</code> folder and refresh this page.</p>
+    <details>
+      <summary>JSON format</summary>
+      <pre class="sample">{
+  "title": "Sample quiz",
+  "subtitle": "Optional description",
+  "questions": [
+    {
+      "id": 1,
+      "title": "Question 1",
+      "text": "Which statements are true?",
+      "options": [
+        {"id": "A", "text": "First statement"},
+        {"id": "B", "text": "Second statement"}
+      ],
+      "correct": ["A"],
+      "explanation": "A is true because..."
+    }
+  ]
+}</pre>
+    </details>
+  </section>
+</div>
+</body>
+</html>
