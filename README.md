@@ -22,7 +22,10 @@ Quizzes are JSON files in `datasets/`. The main page lists every valid file.
 - Upload a `.json` file to add a dataset, or upload the same file name to replace it.
 - Or copy a file into `datasets/` and refresh the page.
 
-The included set is `datasets/theory_test_1.json` (Lectures 1–6 and NumPy).
+Included sets:
+
+- `datasets/theory_test_1.json` — the original grouped practice exam
+- `datasets/deep_learning_foundations.json` — every question from the study guide (Lectures 1–6 and NumPy)
 
 ```json
 {

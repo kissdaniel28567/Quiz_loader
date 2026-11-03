@@ -48,6 +48,35 @@ def tiny_dataset(title: str, correct: list[str], explanation: str) -> dict:
 
 
 class ScoringTests(unittest.TestCase):
+    def test_deep_learning_dataset_covers_the_study_guide(self):
+        dataset = load_dataset(ROOT / "datasets", "deep_learning_foundations")
+        self.assertIsNotNone(dataset)
+        self.assertEqual(dataset["title"], "Deep Learning Foundations")
+        self.assertEqual(len(dataset["questions"]), 131)
+        titles = [question["title"] for question in dataset["questions"]]
+        self.assertEqual(len(titles), len(set(titles)))
+        for prefix, count in {
+            "Core": 7,
+            "Tasks": 3,
+            "Cholesterol": 24,
+            "Scaling": 3,
+            "Diagnosis": 13,
+            "Losses": 4,
+            "MLP": 12,
+            "Overfitting": 13,
+            "Backprop": 3,
+            "NumPy attributes": 8,
+            "NumPy slicing": 7,
+            "NumPy broadcasting": 4,
+            "NumPy reductions": 9,
+            "NumPy transforms": 5,
+            "NumPy views": 7,
+            "NumPy functions": 9,
+        }.items():
+            self.assertEqual(sum(title.startswith(prefix + ":") for title in titles), count)
+        answers = {question["id"]: list(question["correct"]) for question in dataset["questions"]}
+        self.assertEqual(score_quiz(dataset, answers)["total"], 131.0)
+
     def test_bundled_dataset_perfect_score(self):
         dataset = load_dataset(ROOT / "datasets", "theory_test_1")
         self.assertIsNotNone(dataset)
