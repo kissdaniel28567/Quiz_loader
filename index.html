@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Practice Exam</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --border: #e2e8f0;
+      --success-bg: #ecfdf5;
+      --success-border: #10b981;
+      --warning-bg: #fffbeb;
+      --warning-border: #f59e0b;
+      --danger-bg: #fef2f2;
+      --danger-border: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 2rem 1rem; line-height: 1.5; }
+    .container { max-width: 860px; margin: 0 auto; }
+    
+    header { background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    h1 { font-size: 1.75rem; margin-bottom: 0.5rem; color: #0f172a; }
+    .rules { background: #eff6ff; border-left: 4px solid var(--primary); padding: 1rem; margin-top: 1rem; border-radius: 0 6px 6px 0; font-size: 0.9rem; }
+
+    .question-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .question-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    .question-score { font-size: 0.85rem; padding: 0.2rem 0.6rem; border-radius: 9999px; font-weight: 600; }
+
+    .options-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    .option-label { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.15s; }
+    .option-label:hover { background-color: #f1f5f9; }
+    .option-label input[type="checkbox"] { margin-top: 0.25rem; width: 1.1rem; height: 1.1rem; cursor: pointer; }
+
+    .correct-opt { background: #dcfce7 !important; border-color: #86efac !important; font-weight: 500; }
+    .wrong-opt { background: #fee2e2 !important; border-color: #fca5a5 !important; }
+    .explanation { margin-top: 1rem; padding: 1rem; border-radius: 8px; font-size: 0.9rem; display: none; }
+
+    .btn-container { display: flex; gap: 1rem; justify-content: center; margin: 2rem 0; }
+    .btn { padding: 0.85rem 2rem; border: none; border-radius: 8px; font-size: 1.05rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .btn-submit { background: var(--primary); color: white; }
+    .btn-submit:hover { background: var(--primary-hover); }
+    .btn-reset { background: #64748b; color: white; display: none; }
+    .btn-reset:hover { background: #475569; }
+
+    .score-banner { display: none; background: var(--card-bg); border: 2px solid var(--primary); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; text-align: center; }
+    .score-banner h2 { font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1 id="quizTitle">Quiz</h1>
+    <p id="quizSubtitle" style="color: var(--text-muted);"></p>
+    <div class="rules">
+      <strong>Exam Scoring System:</strong>
+      <ul style="margin-left: 1.25rem; margin-top: 0.25rem;">
+        <li>Each question has multiple statements (at least one is true).</li>
+        <li><strong>Full score (1.0 pt)</strong>: Select all true statements and only those.</li>
+        <li><strong>Half score (0.5 pt)</strong>: Exactly one mistake (1 missed correct OR 1 chosen incorrect).</li>
+        <li><strong>Zero score (0.0 pt)</strong>: Two or more mistakes.</li>
+      </ul>
+    </div>
+  </header>
+
+  <div id="scoreBanner" class="score-banner">
+    <p>Your Final Result</p>
+    <h2 id="totalScore">0 / 0</h2>
+    <p id="scorePercent" style="font-weight: 600;"></p>
+  </div>
+
+  <form id="quizForm">
+    <div id="quizContainer"></div>
+    <div class="btn-container">
+      <button type="button" class="btn btn-submit" id="submitBtn" onclick="evaluateQuiz()">Submit Test</button>
+      <button type="button" class="btn btn-reset" id="resetBtn" onclick="resetQuiz()">Retake Quiz</button>
+    </div>
+  </form>
+</div>
+
+<!-- 1. External Data Import -->
+<script src="quiz_data.js"></script>
+
+<!-- 2. Reusable Quiz Engine -->
+<script>
+let questions = [];
+
+function initQuiz() {
+  if (!window.quizData || !window.quizData.questions) {
+    document.getElementById("quizContainer").innerHTML = 
+      "<div style='color:red; background:white; padding:1.5rem; border-radius:8px;'>Error: <code>quiz_data.js</code> was not found or is formatted incorrectly. Ensure both files are in the same folder.</div>";
+    return;
+  }
+
+  document.getElementById("quizTitle").textContent = window.quizData.title || "Practice Exam";
+  document.getElementById("quizSubtitle").textContent = window.quizData.subtitle || "";
+  questions = window.quizData.questions;
+
+  const container = document.getElementById("quizContainer");
+  container.innerHTML = questions.map((q) => `
+    <div class="question-card" id="card-${q.id}">
+      <div class="question-title">
+        <span>${q.title}</span>
+        <span class="question-score" id="score-badge-${q.id}"></span>
+      </div>
+      <p style="margin-bottom: 1rem; color: #334155;">${q.text}</p>
+      <div class="options-list">
+        ${q.options.map(opt => `
+          <label class="option-label" id="label-${q.id}-${opt.id}">
+            <input type="checkbox" name="q${q.id}" value="${opt.id}">
+            <span><strong>${opt.id}.</strong> ${opt.text}</span>
+          </label>
+        `).join('')}
+      </div>
+      <div class="explanation" id="exp-${q.id}">
+        <strong>Explanation:</strong> ${q.explanation}
+      </div>
+    </div>
+  `).join('');
+}
+
+function evaluateQuiz() {
+  let totalScore = 0;
+  const maxScore = questions.length;
+
+  questions.forEach(q => {
+    const selected = Array.from(document.querySelectorAll(`input[name="q${q.id}"]:checked`)).map(el => el.value);
+    const correct = q.correct;
+
+    const falsePositives = selected.filter(x => !correct.includes(x)).length;
+    const falseNegatives = correct.filter(x => !selected.includes(x)).length;
+    const mistakes = falsePositives + falseNegatives;
+
+    let points = 0;
+    if (mistakes === 0) points = 1.0;
+    else if (mistakes === 1) points = 0.5;
+    else points = 0.0;
+
+    totalScore += points;
+
+    // Badge styling
+    const badge = document.getElementById(`score-badge-${q.id}`);
+    badge.textContent = `${points.toFixed(1)} / 1.0 pt (${mistakes} mistake${mistakes === 1 ? '' : 's'})`;
+    badge.style.display = "inline-block";
+    if (points === 1.0) {
+      badge.style.background = "var(--success-bg)";
+      badge.style.color = "#065f46";
+      badge.style.border = "1px solid var(--success-border)";
+    } else if (points === 0.5) {
+      badge.style.background = "var(--warning-bg)";
+      badge.style.color = "#92400e";
+      badge.style.border = "1px solid var(--warning-border)";
+    } else {
+      badge.style.background = "var(--danger-bg)";
+      badge.style.color = "#991b1b";
+      badge.style.border = "1px solid var(--danger-border)";
+    }
+
+    // Color options
+    q.options.forEach(opt => {
+      const label = document.getElementById(`label-${q.id}-${opt.id}`);
+      const isSelected = selected.includes(opt.id);
+      const isCorrect = correct.includes(opt.id);
+
+      if (isCorrect) label.classList.add("correct-opt");
+      else if (isSelected && !isCorrect) label.classList.add("wrong-opt");
+    });
+
+    // Show explanations
+    const exp = document.getElementById(`exp-${q.id}`);
+    exp.style.display = "block";
+    exp.style.background = points === 1.0 ? "var(--success-bg)" : "#f8fafc";
+    exp.style.border = "1px solid " + (points === 1.0 ? "var(--success-border)" : "var(--border)");
+  });
+
+  // Display Total Score
+  const banner = document.getElementById("scoreBanner");
+  banner.style.display = "block";
+  document.getElementById("totalScore").textContent = `${totalScore.toFixed(1)} / ${maxScore}`;
+  const pct = ((totalScore / maxScore) * 100).toFixed(1);
+  document.getElementById("scorePercent").textContent = `Score: ${pct}%`;
+  
+  // Toggle buttons
+  document.querySelectorAll('input[type="checkbox"]').forEach(el => el.disabled = true);
+  document.getElementById("submitBtn").style.display = "none";
+  document.getElementById("resetBtn").style.display = "inline-block";
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetQuiz() {
+  document.querySelectorAll('input[type="checkbox"]').forEach(el => {
+    el.checked = false;
+    el.disabled = false;
+  });
+  document.querySelectorAll('.option-label').forEach(el => {
+    el.classList.remove("correct-opt", "wrong-opt");
+  });
+  document.querySelectorAll('.explanation').forEach(el => el.style.display = "none");
+  document.querySelectorAll('.question-score').forEach(el => el.style.display = "none");
+  document.getElementById("scoreBanner").style.display = "none";
+  document.getElementById("submitBtn").style.display = "inline-block";
+  document.getElementById("resetBtn").style.display = "none";
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+initQuiz();
+</script>
+
+</body>
+</html>
