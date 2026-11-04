@@ -1,0 +1,2805 @@
+{
+  "title": "Deep Learning Foundations",
+  "subtitle": "Every question from the study guide: Lectures 1–6 and NumPy",
+  "questions": [
+    {
+      "id": "1",
+      "title": "Core: Inputs of the hypothesis function",
+      "text": "What are the inputs to the hypothesis function h_θ? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "It receives the input features: a vector x, or a matrix X for a batch of examples."
+        },
+        {
+          "id": "B",
+          "text": "It receives the model parameters θ (also written as weights W and biases b)."
+        },
+        {
+          "id": "C",
+          "text": "It receives the ground-truth label y as one of its inputs."
+        },
+        {
+          "id": "D",
+          "text": "It receives the loss value J(θ) as one of its inputs."
+        }
+      ],
+      "correct": [
+        "A",
+        "B"
+      ],
+      "explanation": "The hypothesis is h_θ(x). Its inputs are the features and the parameters. The label and the loss are not inputs to h_θ."
+    },
+    {
+      "id": "2",
+      "title": "Core: Outputs of the hypothesis function",
+      "text": "What are the outputs (the value) of the hypothesis function? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "In regression the output is a continuous value, or a vector of continuous values."
+        },
+        {
+          "id": "B",
+          "text": "In binary classification the output is an estimated probability P(y=1|x) in [0, 1], or a class label after thresholding."
+        },
+        {
+          "id": "C",
+          "text": "In multi-class classification the output is a probability distribution over classes, a vector that sums to 1."
+        },
+        {
+          "id": "D",
+          "text": "In regression the output is restricted to a discrete class label."
+        },
+        {
+          "id": "E",
+          "text": "In multi-class classification the output is one unbounded scalar."
+        }
+      ],
+      "correct": [
+        "A",
+        "B",
+        "C"
+      ],
+      "explanation": "The hypothesis outputs a prediction ŷ. Regression is continuous, binary classification is a probability or a thresholded label, and multi-class classification is a distribution over classes."
+    },
+    {
+      "id": "3",
+      "title": "Core: Format of a label",
+      "text": "What can be the format of a label? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "A label can be a scalar, as in single-target regression (y in R) or binary classification (y in {0, 1})."
+        },
+        {
+          "id": "B",
+          "text": "A label can be a vector, as in multi-output regression, multi-label classification, or a one-hot multi-class label."
+        },
+        {
+          "id": "C",
+          "text": "A label can be a matrix or tensor, as in a segmentation mask or a video annotation."
+        },
+        {
+          "id": "D",
+          "text": "A label must always be a scalar in {0, 1}."
+        }
+      ],
+      "correct": [
+        "A",
+        "B",
+        "C"
+      ],
+      "explanation": "Supervised labels can be scalars, vectors, or matrices/tensors. They are not restricted to a single binary scalar."
+    },
+    {
+      "id": "4",
+      "title": "Core: Constituents of a supervised data point",
+      "text": "What are the constituents of a data point in supervised learning? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "A data point is an input feature vector x = [x_1, ..., x_n]^T together with its ground-truth label y."
+        },
+        {
+          "id": "B",
+          "text": "A supervised data point is only an unlabeled feature vector x."
+        },
+        {
+          "id": "C",
+          "text": "A supervised data point is a reward and the next state, with no label."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Supervised learning pairs features x with a target y. Unlabeled x belongs to unsupervised learning, and a reward belongs to reinforcement learning."
+    },
+    {
+      "id": "5",
+      "title": "Core: Role of the loss function",
+      "text": "What is the role of the loss function? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "It measures the discrepancy between the prediction ŷ = h_θ(x) and the true target y."
+        },
+        {
+          "id": "B",
+          "text": "Averaged over a dataset it is the cost J(θ), and it guides learning."
+        },
+        {
+          "id": "C",
+          "text": "It replaces the hypothesis and directly stores the training features."
+        },
+        {
+          "id": "D",
+          "text": "Its role is to be maximized so that the predictions become arbitrarily large."
+        }
+      ],
+      "correct": [
+        "A",
+        "B"
+      ],
+      "explanation": "The loss penalizes the gap between prediction and target. The dataset-level objective J(θ) is what optimization minimizes."
+    },
+    {
+      "id": "6",
+      "title": "Core: Shape of the loss value",
+      "text": "Can the value of the loss function be a scalar, a vector, or a matrix? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The final cost J(θ) is always a scalar, so that it can be minimized."
+        },
+        {
+          "id": "B",
+          "text": "Individual sample losses in a batch may form a vector before they are reduced by averaging or summing."
+        },
+        {
+          "id": "C",
+          "text": "The objective J(θ) itself is a matrix, with one row per parameter."
+        },
+        {
+          "id": "D",
+          "text": "The objective J(θ) itself is a vector, with one entry per class."
+        }
+      ],
+      "correct": [
+        "A",
+        "B"
+      ],
+      "explanation": "J(θ) is a single real number. A batch can hold per-example losses in a vector, but that vector is reduced before it becomes the objective."
+    },
+    {
+      "id": "7",
+      "title": "Core: Reinforcement learning feedback",
+      "text": "In reinforcement learning, what feedback comes from the environment, and how does it differ from supervised learning? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Reinforcement learning feedback is a numerical reward, often delayed, sparse, and evaluative rather than instructive."
+        },
+        {
+          "id": "B",
+          "text": "A reward says how good or bad an action was. It does not name the correct action."
+        },
+        {
+          "id": "C",
+          "text": "Supervised learning gives an explicit ground-truth label for every training example."
+        },
+        {
+          "id": "D",
+          "text": "Reinforcement learning provides the correct action for every state, in the same way a label does."
+        },
+        {
+          "id": "E",
+          "text": "Supervised learning feedback is only a delayed scalar reward."
+        }
+      ],
+      "correct": [
+        "A",
+        "B",
+        "C"
+      ],
+      "explanation": "Rewards evaluate an action. Labels instruct the model with the correct target. Those are different kinds of feedback."
+    },
+    {
+      "id": "8",
+      "title": "Tasks: Task types",
+      "text": "Which statements about these learning tasks are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Regression is supervised. Its goal is to predict a continuous value from input features."
+        },
+        {
+          "id": "B",
+          "text": "Classification is supervised. Its goal is to predict a discrete class label."
+        },
+        {
+          "id": "C",
+          "text": "Clustering is unsupervised. Its goal is to group unlabeled data by similarity."
+        },
+        {
+          "id": "D",
+          "text": "Dimensionality reduction is unsupervised. Its goal is to compress data while keeping important structure, as PCA does."
+        },
+        {
+          "id": "E",
+          "text": "Denoising reconstructs a clean signal from a noisy input. It can be supervised, self-supervised, or unsupervised."
+        },
+        {
+          "id": "F",
+          "text": "Clustering is supervised and requires a class label for every point."
+        }
+      ],
+      "correct": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "explanation": "Regression and classification use labels. Clustering and dimensionality reduction do not. Denoising can sit in more than one of those settings."
+    },
+    {
+      "id": "9",
+      "title": "Tasks: Linear regression: task and supervision",
+      "text": "Is linear regression used for regression or classification? Is it supervised or unsupervised? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Linear regression is used for regression."
+        },
+        {
+          "id": "B",
+          "text": "Linear regression is supervised."
+        },
+        {
+          "id": "C",
+          "text": "Linear regression is used for classification."
+        },
+        {
+          "id": "D",
+          "text": "Linear regression is unsupervised."
+        }
+      ],
+      "correct": [
+        "A",
+        "B"
+      ],
+      "explanation": "Linear regression predicts a continuous target from labeled examples."
+    },
+    {
+      "id": "10",
+      "title": "Tasks: Logistic regression: task and supervision",
+      "text": "Is logistic regression used for regression or classification? Is it supervised or unsupervised? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Logistic regression is used for classification, despite the word regression in its name."
+        },
+        {
+          "id": "B",
+          "text": "Logistic regression is supervised."
+        },
+        {
+          "id": "C",
+          "text": "Logistic regression is used to predict an unbounded continuous target."
+        },
+        {
+          "id": "D",
+          "text": "Logistic regression is unsupervised."
+        }
+      ],
+      "correct": [
+        "A",
+        "B"
+      ],
+      "explanation": "The name is misleading: logistic regression classifies labeled examples."
+    },
+    {
+      "id": "11",
+      "title": "Cholesterol: Linear or logistic regression",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. Which model should we use? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Use linear regression, because the target is a continuous number."
+        },
+        {
+          "id": "B",
+          "text": "Use logistic regression, because cholesterol is a class label."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "A continuous target calls for linear regression, not logistic regression."
+    },
+    {
+      "id": "12",
+      "title": "Cholesterol: Number of parameters",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. How many parameters θ does linear regression with a bias term have? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "There are 5 parameters: one weight for each of the 4 features, plus a bias θ_0."
+        },
+        {
+          "id": "B",
+          "text": "There are 4 parameters, one per feature, and no bias."
+        },
+        {
+          "id": "C",
+          "text": "There are 200 parameters, one per patient."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "θ = (θ_0, θ_1, θ_2, θ_3, θ_4). The bias is an extra parameter, and the patient count is not the parameter count."
+    },
+    {
+      "id": "13",
+      "title": "Cholesterol: Loss function",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. Which loss should we use? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Use mean squared error (least squares)."
+        },
+        {
+          "id": "B",
+          "text": "Use binary cross-entropy, because the target is continuous."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Least squares / MSE is the loss for this continuous target."
+    },
+    {
+      "id": "14",
+      "title": "Cholesterol: Shape of X in the matrix hypothesis",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. For h_θ(X) = Xθ, with a column of ones in X, which statements about the shape of X are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "X has shape (200, 5), that is (m, n + 1)."
+        },
+        {
+          "id": "B",
+          "text": "X has shape (200, 4), because the bias column is not included."
+        },
+        {
+          "id": "C",
+          "text": "X has shape (5, 200)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "200 patients and 4 features plus the intercept column give X a shape of (200, 5)."
+    },
+    {
+      "id": "15",
+      "title": "Cholesterol: Shape of θ in the matrix hypothesis",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. For h_θ(X) = Xθ, which statements about the shape of θ are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "θ has shape (5, 1). A 1D array of length 5 is the same parameter vector."
+        },
+        {
+          "id": "B",
+          "text": "θ has shape (200, 1)."
+        },
+        {
+          "id": "C",
+          "text": "θ has shape (4, 1), with no bias entry."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "θ is (n + 1) by 1, so (5, 1)."
+    },
+    {
+      "id": "16",
+      "title": "Cholesterol: Shape of h_θ(X)",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. For h_θ(X) = Xθ, which statements about the shape of h_θ(X) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "h_θ(X) has shape (200, 1)."
+        },
+        {
+          "id": "B",
+          "text": "h_θ(X) has shape (200, 5)."
+        },
+        {
+          "id": "C",
+          "text": "h_θ(X) has shape (5, 1)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "X is (200, 5) and θ is (5, 1), so the product is (200, 1)."
+    },
+    {
+      "id": "17",
+      "title": "Cholesterol: Range of h_θ(X)",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. For h_θ(X) = Xθ, which statements about the range of values in h_θ(X) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Every entry can be any real number, so the range is (−∞, +∞)."
+        },
+        {
+          "id": "B",
+          "text": "Every entry lies in (0, 1)."
+        },
+        {
+          "id": "C",
+          "text": "Every entry lies in {0, 1}."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "A linear prediction is unbounded."
+    },
+    {
+      "id": "18",
+      "title": "Cholesterol: Where patient age is stored",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. Are the patients' ages inside θ or inside X? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Ages are inside X. They are feature values."
+        },
+        {
+          "id": "B",
+          "text": "Ages are inside θ. They are learned parameters."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Patient measurements are data, so they live in X, not in θ."
+    },
+    {
+      "id": "19",
+      "title": "Cholesterol: Do we minimize X?",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. Do we minimize X during learning? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. X is fixed training data."
+        },
+        {
+          "id": "B",
+          "text": "Yes. Learning updates the entries of X."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The feature matrix is given. Training does not minimize it."
+    },
+    {
+      "id": "20",
+      "title": "Cholesterol: Do we minimize h_θ(X)?",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. Do we minimize h_θ(X) during learning? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. Minimizing the predictions themselves would push them toward arbitrarily low values."
+        },
+        {
+          "id": "B",
+          "text": "Yes. The goal is to make every cholesterol prediction as small as possible."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "We want accurate predictions, not the smallest possible predictions."
+    },
+    {
+      "id": "21",
+      "title": "Cholesterol: Do we minimize θ?",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. Do we minimize θ during learning? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. Minimizing θ itself is not the goal. Regularization can penalize large weights, but learning minimizes the loss."
+        },
+        {
+          "id": "B",
+          "text": "Yes. Gradient descent minimizes the parameter vector θ directly."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The objective is J(θ), not the size of θ. A regularizer only adds a penalty on large weights."
+    },
+    {
+      "id": "22",
+      "title": "Cholesterol: What do we minimize?",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. What do we minimize during learning? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "We minimize the cost J(θ), for example the mean squared error."
+        },
+        {
+          "id": "B",
+          "text": "We minimize the feature matrix X."
+        },
+        {
+          "id": "C",
+          "text": "We minimize the predictions h_θ(X)."
+        },
+        {
+          "id": "D",
+          "text": "We minimize the parameter vector θ by itself."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Training minimizes the loss J(θ). It does not minimize X, the predictions, or θ directly."
+    },
+    {
+      "id": "23",
+      "title": "Cholesterol: Scalar hypothesis: vector or scalar",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. For one patient, h_θ(x) = θ^T x = sum_i θ_i x_i. Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "h_θ(x) is a scalar: one predicted cholesterol value."
+        },
+        {
+          "id": "B",
+          "text": "h_θ(x) is a vector with one entry per feature."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The dot product θ^T x collapses to a single number."
+    },
+    {
+      "id": "24",
+      "title": "Cholesterol: Range of the scalar hypothesis",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. What is the range of h_θ(x) = θ^T x? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The range is (−∞, +∞)."
+        },
+        {
+          "id": "B",
+          "text": "The range is (0, 1)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "A linear function of the features is unbounded."
+    },
+    {
+      "id": "25",
+      "title": "Cholesterol: Age assigned to θ or x",
+      "text": "We want to predict cholesterol, a continuous value, from weight, age, height, and sex (n = 4 features) using m = 200 patients. For a single patient, is age assigned to θ or to x? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Age is assigned to a feature value x_i."
+        },
+        {
+          "id": "B",
+          "text": "Age is assigned to a parameter θ_i."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Age is an observed feature, so it is a component of x."
+    },
+    {
+      "id": "26",
+      "title": "Cholesterol: Geometry with one input",
+      "text": "For linear regression, what is the geometric picture with one input variable plotted on (x, y) axes? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The hypothesis is a straight line, y = θ_1 x_1 + θ_0."
+        },
+        {
+          "id": "B",
+          "text": "The hypothesis is a circle in the (x, y) plane."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "One feature plus a bias is a line."
+    },
+    {
+      "id": "27",
+      "title": "Cholesterol: Geometry with two inputs",
+      "text": "For linear regression, what is the geometric picture with two input variables plotted on (x_1, x_2, y) axes? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The hypothesis is a flat plane in 3D space."
+        },
+        {
+          "id": "B",
+          "text": "The hypothesis is a curved paraboloid."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Two features plus a bias define a plane, not a curved surface."
+    },
+    {
+      "id": "28",
+      "title": "Cholesterol: Normal equation: shape of X",
+      "text": "The normal equation is θ = (X^T X + λ I)^{-1} X^T y, for the same cholesterol problem (m = 200, n = 4, with a bias). Which statements about the shape of X are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "X has shape (200, 5)."
+        },
+        {
+          "id": "B",
+          "text": "X has shape (5, 200)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "X is still the design matrix with 200 rows and 5 columns."
+    },
+    {
+      "id": "29",
+      "title": "Cholesterol: Normal equation: shape of y",
+      "text": "The normal equation is θ = (X^T X + λ I)^{-1} X^T y, for the same cholesterol problem (m = 200, n = 4, with a bias). Which statements about the shape of y are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "y has shape (200, 1)."
+        },
+        {
+          "id": "B",
+          "text": "y has shape (5, 1)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "There is one cholesterol target per patient, so y is (200, 1)."
+    },
+    {
+      "id": "30",
+      "title": "Cholesterol: Normal equation: shape of θ",
+      "text": "The normal equation is θ = (X^T X + λ I)^{-1} X^T y, for the same cholesterol problem (m = 200, n = 4, with a bias). Which statements about the shape of θ are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "θ has shape (5, 1)."
+        },
+        {
+          "id": "B",
+          "text": "θ has shape (200, 1)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The solved parameter vector has one entry per column of X, so (5, 1)."
+    },
+    {
+      "id": "31",
+      "title": "Cholesterol: Where the cholesterol levels go",
+      "text": "The normal equation is θ = (X^T X + λ I)^{-1} X^T y, for the same cholesterol problem (m = 200, n = 4, with a bias). Where are the cholesterol levels placed? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "They are placed in the target vector y."
+        },
+        {
+          "id": "B",
+          "text": "They are placed in the parameter vector θ."
+        },
+        {
+          "id": "C",
+          "text": "They are placed in the identity matrix I."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Cholesterol is the target, so it is y. θ holds parameters and I is the identity used for regularization."
+    },
+    {
+      "id": "32",
+      "title": "Cholesterol: What the I matrix is",
+      "text": "The normal equation is θ = (X^T X + λ I)^{-1} X^T y, for the same cholesterol problem (m = 200, n = 4, with a bias). What is the I matrix? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "I is the identity matrix, of size (n + 1) by (n + 1), here 5 by 5."
+        },
+        {
+          "id": "B",
+          "text": "The top-left entry is typically I_0,0 = 0, so the bias is not regularized."
+        },
+        {
+          "id": "C",
+          "text": "I stores the patient features."
+        },
+        {
+          "id": "D",
+          "text": "I is the 200 by 200 matrix of cholesterol levels."
+        }
+      ],
+      "correct": [
+        "A",
+        "B"
+      ],
+      "explanation": "I is the 5×5 identity used in the ridge term. Zeroing I_0,0 leaves the bias unpenalized."
+    },
+    {
+      "id": "33",
+      "title": "Cholesterol: Global optimum for linear regression",
+      "text": "With a small enough step size, is gradient descent guaranteed to find the globally optimal parameters of linear regression with mean squared error? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Yes. Linear regression with MSE is strictly convex: one global minimum and no local minima."
+        },
+        {
+          "id": "B",
+          "text": "No. This loss has many local minima, so a small step size is not enough."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "MSE on a linear model is strictly convex, so gradient descent reaches the global optimum."
+    },
+    {
+      "id": "34",
+      "title": "Cholesterol: Global optimum for an MLP",
+      "text": "With a small enough step size, is gradient descent guaranteed to find the globally optimal parameters of a multi-layer perceptron trained with mean squared error? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. The loss of a neural network is non-convex, so gradient descent can stop at a local minimum or a saddle."
+        },
+        {
+          "id": "B",
+          "text": "Yes. A small enough step size guarantees the global optimum, just as it does for linear regression."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "An MLP is not a convex problem. A small learning rate does not remove local minima or saddles."
+    },
+    {
+      "id": "35",
+      "title": "Scaling: Purpose of feature scaling",
+      "text": "What is the purpose of feature scaling? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "It puts features on comparable numeric ranges, so the loss contours are rounder instead of long thin ellipses."
+        },
+        {
+          "id": "B",
+          "text": "It speeds up gradient descent and stops a feature with a huge magnitude from dominating."
+        },
+        {
+          "id": "C",
+          "text": "It changes the labels so that a convex loss becomes non-convex."
+        },
+        {
+          "id": "D",
+          "text": "It removes the need for a loss function."
+        }
+      ],
+      "correct": [
+        "A",
+        "B"
+      ],
+      "explanation": "Scaling is about the geometry of the loss in parameter space. It does not replace the loss or relabel the data."
+    },
+    {
+      "id": "36",
+      "title": "Scaling: Training without feature scaling",
+      "text": "What happens if we do not use feature scaling? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Gradient descent can zigzag, converge much more slowly, or diverge when the learning rate is too large."
+        },
+        {
+          "id": "B",
+          "text": "The optimization path is unchanged, because the scale of a feature never matters."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Uneven feature scales stretch the loss contours, which makes gradient descent inefficient or unstable."
+    },
+    {
+      "id": "37",
+      "title": "Scaling: Min-max scaling and outliers",
+      "text": "Which is more robust to outliers, min-max scaling or standardization? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Standardization, z = (x − μ) / σ, is more robust to outliers."
+        },
+        {
+          "id": "B",
+          "text": "Min-max scaling uses x_min and x_max, so one extreme outlier squeezes the rest of the data into a tiny interval."
+        },
+        {
+          "id": "C",
+          "text": "Min-max scaling is more robust to outliers than standardization."
+        }
+      ],
+      "correct": [
+        "A",
+        "B"
+      ],
+      "explanation": "Min-max depends directly on the most extreme values. Standardization uses the mean and standard deviation and is the more robust of the two."
+    },
+    {
+      "id": "38",
+      "title": "Diagnosis: Linear or logistic regression",
+      "text": "We want to classify patients as sick or healthy from 2 blood-test values (n = 2) using m = 100 patients. The model is logistic regression, h_θ(X) = g(Xθ), with g(z) = 1 / (1 + e^(−z)). Which model fits this problem? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Use logistic regression."
+        },
+        {
+          "id": "B",
+          "text": "Use linear regression, because sick versus healthy is a continuous target."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Sick versus healthy is a binary label, so the model is logistic regression."
+    },
+    {
+      "id": "39",
+      "title": "Diagnosis: Number of parameters",
+      "text": "We want to classify patients as sick or healthy from 2 blood-test values (n = 2) using m = 100 patients. The model is logistic regression, h_θ(X) = g(Xθ), with g(z) = 1 / (1 + e^(−z)). How many parameters does logistic regression with a bias have? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "There are 3 parameters: the bias θ_0 and the two weights θ_1 and θ_2."
+        },
+        {
+          "id": "B",
+          "text": "There are 2 parameters and no bias."
+        },
+        {
+          "id": "C",
+          "text": "There are 100 parameters, one per patient."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Two features plus a bias give 3 parameters."
+    },
+    {
+      "id": "40",
+      "title": "Diagnosis: Loss function",
+      "text": "We want to classify patients as sick or healthy from 2 blood-test values (n = 2) using m = 100 patients. The model is logistic regression, h_θ(X) = g(Xθ), with g(z) = 1 / (1 + e^(−z)). Which loss is the standard choice? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Binary cross-entropy, also called log loss or negative log-likelihood."
+        },
+        {
+          "id": "B",
+          "text": "Mean squared error is the standard loss for this classification task."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Binary classification with logistic regression uses binary cross-entropy."
+    },
+    {
+      "id": "41",
+      "title": "Diagnosis: Shape of X",
+      "text": "We want to classify patients as sick or healthy from 2 blood-test values (n = 2) using m = 100 patients. The model is logistic regression, h_θ(X) = g(Xθ), with g(z) = 1 / (1 + e^(−z)). Which statements about the shape of X are TRUE? X includes the bias column.",
+      "options": [
+        {
+          "id": "A",
+          "text": "X has shape (100, 3)."
+        },
+        {
+          "id": "B",
+          "text": "X has shape (100, 2), because the bias column is omitted."
+        },
+        {
+          "id": "C",
+          "text": "X has shape (3, 100)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "100 patients and 2 features plus a bias column give (100, 3)."
+    },
+    {
+      "id": "42",
+      "title": "Diagnosis: Shape of θ",
+      "text": "We want to classify patients as sick or healthy from 2 blood-test values (n = 2) using m = 100 patients. The model is logistic regression, h_θ(X) = g(Xθ), with g(z) = 1 / (1 + e^(−z)). Which statements about the shape of θ are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "θ has shape (3, 1)."
+        },
+        {
+          "id": "B",
+          "text": "θ has shape (100, 1)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "There is one parameter per column of X, so θ is (3, 1)."
+    },
+    {
+      "id": "43",
+      "title": "Diagnosis: Shape of h_θ(X)",
+      "text": "We want to classify patients as sick or healthy from 2 blood-test values (n = 2) using m = 100 patients. The model is logistic regression, h_θ(X) = g(Xθ), with g(z) = 1 / (1 + e^(−z)). Which statements about the shape of h_θ(X) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "h_θ(X) has shape (100, 1)."
+        },
+        {
+          "id": "B",
+          "text": "h_θ(X) has shape (100, 3)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "There is one probability per patient, so the result is (100, 1)."
+    },
+    {
+      "id": "44",
+      "title": "Diagnosis: Range of h_θ(X)",
+      "text": "We want to classify patients as sick or healthy from 2 blood-test values (n = 2) using m = 100 patients. The model is logistic regression, h_θ(X) = g(Xθ), with g(z) = 1 / (1 + e^(−z)). Which statements about the range of h_θ(X) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The values lie in (0, 1). They are probabilities."
+        },
+        {
+          "id": "B",
+          "text": "The values lie in (−∞, +∞)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The sigmoid squashes the linear score into (0, 1)."
+    },
+    {
+      "id": "45",
+      "title": "Diagnosis: Where the blood-test results are stored",
+      "text": "We want to classify patients as sick or healthy from 2 blood-test values (n = 2) using m = 100 patients. The model is logistic regression, h_θ(X) = g(Xθ), with g(z) = 1 / (1 + e^(−z)). Are the blood-test results in θ or in X? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "They are in X."
+        },
+        {
+          "id": "B",
+          "text": "They are in θ."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Blood-test values are features, so they are columns of X."
+    },
+    {
+      "id": "46",
+      "title": "Diagnosis: What we minimize",
+      "text": "We want to classify patients as sick or healthy from 2 blood-test values (n = 2) using m = 100 patients. The model is logistic regression, h_θ(X) = g(Xθ), with g(z) = 1 / (1 + e^(−z)). What do we minimize during learning? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "We minimize the binary cross-entropy cost J(θ)."
+        },
+        {
+          "id": "B",
+          "text": "We minimize the feature matrix X."
+        },
+        {
+          "id": "C",
+          "text": "We minimize the parameter vector θ itself."
+        },
+        {
+          "id": "D",
+          "text": "We minimize the predictions h_θ(X)."
+        },
+        {
+          "id": "E",
+          "text": "We minimize the sigmoid function g."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The objective is J(θ). We do not minimize X, θ, h_θ(X), or g."
+    },
+    {
+      "id": "47",
+      "title": "Diagnosis: Scalar hypothesis: vector or scalar",
+      "text": "For one patient, h_θ(x) = g(θ^T x). Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "h_θ(x) is a scalar."
+        },
+        {
+          "id": "B",
+          "text": "h_θ(x) is a vector with one entry per feature."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "g is applied to one logit, so the result is a single probability."
+    },
+    {
+      "id": "48",
+      "title": "Diagnosis: Range of the logit",
+      "text": "For h_θ(x) = g(θ^T x), what is the range of the logit z = θ^T x? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The logit z lies in (−∞, +∞)."
+        },
+        {
+          "id": "B",
+          "text": "The logit z lies in (0, 1)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The linear score is unbounded. The sigmoid is what maps it into (0, 1)."
+    },
+    {
+      "id": "49",
+      "title": "Diagnosis: Range of the scalar hypothesis",
+      "text": "For h_θ(x) = g(θ^T x), what is the range of h_θ(x)? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "h_θ(x) lies in (0, 1)."
+        },
+        {
+          "id": "B",
+          "text": "h_θ(x) lies in (−∞, +∞)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The sigmoid output is a probability in (0, 1)."
+    },
+    {
+      "id": "50",
+      "title": "Diagnosis: Blood tests assigned to x or θ",
+      "text": "For a single patient, where are the blood-test results assigned? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "They are assigned to feature values x_i."
+        },
+        {
+          "id": "B",
+          "text": "They are assigned to parameters θ_i."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "A blood-test result is an observed feature, so it is a component of x."
+    },
+    {
+      "id": "51",
+      "title": "Losses: Mean squared error",
+      "text": "Which statements about mean squared error are TRUE? The formula in the study guide is J(θ) = (1/(2m)) * sum_i (h_θ(x^(i)) − y^(i))^2.",
+      "options": [
+        {
+          "id": "A",
+          "text": "That formula is the mean squared error used for regression."
+        },
+        {
+          "id": "B",
+          "text": "m is the number of training examples, and i indexes those examples."
+        },
+        {
+          "id": "C",
+          "text": "J(θ) evaluates to a scalar."
+        },
+        {
+          "id": "D",
+          "text": "This is the standard loss for multi-class classification."
+        },
+        {
+          "id": "E",
+          "text": "J(θ) evaluates to a vector with one entry per example, and that vector is the objective."
+        }
+      ],
+      "correct": [
+        "A",
+        "B",
+        "C"
+      ],
+      "explanation": "MSE is a regression loss. m counts examples, i indexes them, and the summed objective is a scalar."
+    },
+    {
+      "id": "52",
+      "title": "Losses: Binary cross-entropy",
+      "text": "Which statements about binary cross-entropy are TRUE? The formula is J(θ) = −(1/m) * sum_i [ y^(i) log(h_θ(x^(i))) + (1 − y^(i)) log(1 − h_θ(x^(i))) ].",
+      "options": [
+        {
+          "id": "A",
+          "text": "That formula is binary cross-entropy."
+        },
+        {
+          "id": "B",
+          "text": "It is the loss for binary classification."
+        },
+        {
+          "id": "C",
+          "text": "It is the loss for an unbounded continuous regression target."
+        }
+      ],
+      "correct": [
+        "A",
+        "B"
+      ],
+      "explanation": "Binary cross-entropy matches a binary label. Regression uses MSE instead."
+    },
+    {
+      "id": "53",
+      "title": "Losses: Categorical cross-entropy",
+      "text": "Which statements about categorical cross-entropy are TRUE? The formula is J(θ) = −(1/m) * sum_i sum_k y_k^(i) log(ŷ_k^(i)).",
+      "options": [
+        {
+          "id": "A",
+          "text": "That formula is categorical cross-entropy."
+        },
+        {
+          "id": "B",
+          "text": "It is the loss for multi-class classification, and k indexes the classes."
+        },
+        {
+          "id": "C",
+          "text": "It is the loss for a single continuous target."
+        }
+      ],
+      "correct": [
+        "A",
+        "B"
+      ],
+      "explanation": "The inner sum over k compares a one-hot (or class) label with the predicted class probabilities."
+    },
+    {
+      "id": "54",
+      "title": "Losses: Regularization term",
+      "text": "Which statements about the regularization term (λ/(2m)) * sum_{j=1}^{n} θ_j^2 are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "j indexes the feature weights and starts at 1, so the bias θ_0 is excluded."
+        },
+        {
+          "id": "B",
+          "text": "The term penalizes large feature weights."
+        },
+        {
+          "id": "C",
+          "text": "The sum includes the bias term θ_0."
+        },
+        {
+          "id": "D",
+          "text": "j indexes training examples rather than parameters."
+        }
+      ],
+      "correct": [
+        "A",
+        "B"
+      ],
+      "explanation": "The regularizer sums θ_j^2 over feature weights only. The bias, j = 0, is left out, and j is not an example index."
+    },
+    {
+      "id": "55",
+      "title": "MLP: Parameters in the first layer",
+      "text": "A 2-layer MLP is h(x) = g_2(W_2 · g_1(W_1 x + b_1) + b_2). It regresses one continuous output from 20 inputs, with 10 hidden neurons. Which statements about the first layer (W_1, b_1) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "W_1 is 10 by 20, so it has 200 weights."
+        },
+        {
+          "id": "B",
+          "text": "b_1 has 10 biases, one per hidden neuron."
+        },
+        {
+          "id": "C",
+          "text": "The first layer has 210 parameters in total."
+        },
+        {
+          "id": "D",
+          "text": "The first layer has 20 parameters, one per input."
+        }
+      ],
+      "correct": [
+        "A",
+        "B",
+        "C"
+      ],
+      "explanation": "Each of 10 hidden units has 20 incoming weights and 1 bias: 200 + 10 = 210."
+    },
+    {
+      "id": "56",
+      "title": "MLP: Parameters in the second layer",
+      "text": "A 2-layer MLP is h(x) = g_2(W_2 · g_1(W_1 x + b_1) + b_2). It regresses one continuous output from 20 inputs, with 10 hidden neurons. Which statements about the second layer (W_2, b_2) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "W_2 is 1 by 10, so it has 10 weights."
+        },
+        {
+          "id": "B",
+          "text": "b_2 has 1 bias."
+        },
+        {
+          "id": "C",
+          "text": "The second layer has 11 parameters in total."
+        },
+        {
+          "id": "D",
+          "text": "W_2 is 10 by 20."
+        }
+      ],
+      "correct": [
+        "A",
+        "B",
+        "C"
+      ],
+      "explanation": "The output neuron reads 10 hidden units, so W_2 has 10 weights plus 1 bias."
+    },
+    {
+      "id": "57",
+      "title": "MLP: Total number of parameters",
+      "text": "A 2-layer MLP is h(x) = g_2(W_2 · g_1(W_1 x + b_1) + b_2). It regresses one continuous output from 20 inputs, with 10 hidden neurons. How many trainable parameters does the whole network have? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The network has 221 parameters, because 210 + 11 = 221."
+        },
+        {
+          "id": "B",
+          "text": "The network has 200 parameters."
+        },
+        {
+          "id": "C",
+          "text": "The network has 30 parameters."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Layer 1 contributes 210 parameters and layer 2 contributes 11."
+    },
+    {
+      "id": "58",
+      "title": "MLP: Omitting the hidden activation",
+      "text": "A 2-layer MLP is h(x) = g_2(W_2 · g_1(W_1 x + b_1) + b_2). It regresses one continuous output from 20 inputs, with 10 hidden neurons. Should we omit the hidden activation g_1? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. Omitting g_1 collapses the network into a linear model."
+        },
+        {
+          "id": "B",
+          "text": "Yes. Removing g_1 makes the model more flexible."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Without a nonlinearity between the layers, the two linear maps compose into one linear map."
+    },
+    {
+      "id": "59",
+      "title": "MLP: Omitting the output activation",
+      "text": "A 2-layer MLP is h(x) = g_2(W_2 · g_1(W_1 x + b_1) + b_2). It regresses one continuous output from 20 inputs, with 10 hidden neurons. Should we omit g_2 for this regression task? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Yes. Omit g_2, or use the identity g_2(z) = z, so the output can be any real number."
+        },
+        {
+          "id": "B",
+          "text": "No. g_2 must be a nonlinearity, otherwise a continuous target cannot be predicted."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Regression needs an unbounded output. The identity, or no g_2, provides that."
+    },
+    {
+      "id": "60",
+      "title": "MLP: Sigmoid as the regression output",
+      "text": "A 2-layer MLP is h(x) = g_2(W_2 · g_1(W_1 x + b_1) + b_2). It regresses one continuous output from 20 inputs, with 10 hidden neurons. Should g_2 be a sigmoid? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. A sigmoid would restrict the output to (0, 1), which cannot represent an arbitrary continuous target."
+        },
+        {
+          "id": "B",
+          "text": "Yes. A regression output should pass through a sigmoid."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Sigmoid is for a probability, not for an unbounded regression target."
+    },
+    {
+      "id": "61",
+      "title": "MLP: Binary classification head",
+      "text": "For binary classification with this MLP, which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The output layer has 1 neuron."
+        },
+        {
+          "id": "B",
+          "text": "g_2 should be a sigmoid."
+        },
+        {
+          "id": "C",
+          "text": "The loss should be binary cross-entropy."
+        },
+        {
+          "id": "D",
+          "text": "g_2 should be a softmax over K output neurons."
+        }
+      ],
+      "correct": [
+        "A",
+        "B",
+        "C"
+      ],
+      "explanation": "One sigmoid neuron plus binary cross-entropy is the binary-classification head."
+    },
+    {
+      "id": "62",
+      "title": "MLP: Multi-class classification head",
+      "text": "For multi-class classification with K classes, which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The output layer has K neurons."
+        },
+        {
+          "id": "B",
+          "text": "g_2 should be softmax."
+        },
+        {
+          "id": "C",
+          "text": "The loss should be categorical cross-entropy."
+        },
+        {
+          "id": "D",
+          "text": "The output layer has 1 neuron and uses a sigmoid."
+        }
+      ],
+      "correct": [
+        "A",
+        "B",
+        "C"
+      ],
+      "explanation": "K-way classification uses K logits, a softmax, and categorical cross-entropy."
+    },
+    {
+      "id": "63",
+      "title": "MLP: Sigmoid activation",
+      "text": "Which statements about the sigmoid activation are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "σ(z) = 1 / (1 + e^(−z)), its range is (0, 1), and its graph is an S-shaped curve."
+        },
+        {
+          "id": "B",
+          "text": "The range of sigmoid is (−1, 1)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Sigmoid maps every real input into the open interval (0, 1)."
+    },
+    {
+      "id": "64",
+      "title": "MLP: Tanh activation",
+      "text": "Which statements about the tanh activation are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "tanh(z) = (e^z − e^(−z)) / (e^z + e^(−z)), its range is (−1, 1), and it is a zero-centered S-curve."
+        },
+        {
+          "id": "B",
+          "text": "The range of tanh is (0, 1)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Tanh is the zero-centered S-curve with outputs in (−1, 1)."
+    },
+    {
+      "id": "65",
+      "title": "MLP: ReLU activation",
+      "text": "Which statements about ReLU are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "ReLU is max(0, z). Its range is [0, +∞): 0 for z ≤ 0, and a line of slope 1 for z > 0."
+        },
+        {
+          "id": "B",
+          "text": "ReLU is max(αz, z), with a nonzero slope for negative inputs."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "ReLU clamps negatives to 0. The negative slope belongs to Leaky ReLU, not ReLU."
+    },
+    {
+      "id": "66",
+      "title": "MLP: Leaky ReLU activation",
+      "text": "Which statements about Leaky ReLU are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Leaky ReLU is max(αz, z). Its range is (−∞, +∞), with a small slope α for z < 0."
+        },
+        {
+          "id": "B",
+          "text": "Leaky ReLU outputs 0 for every negative input."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The leak αz keeps a small gradient for negative inputs, so the range is all real numbers."
+    },
+    {
+      "id": "67",
+      "title": "Overfitting: Fewer training examples",
+      "text": "How does decreasing the number of training examples affect overfitting? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Overfitting becomes more severe."
+        },
+        {
+          "id": "B",
+          "text": "Overfitting becomes less severe."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "With fewer training examples, the model has less evidence and overfits more easily."
+    },
+    {
+      "id": "68",
+      "title": "Overfitting: More training examples",
+      "text": "How does increasing the number of training examples affect overfitting? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Overfitting decreases."
+        },
+        {
+          "id": "B",
+          "text": "Overfitting increases."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "More training data makes it harder for the model to memorize noise."
+    },
+    {
+      "id": "69",
+      "title": "Overfitting: Fewer test examples",
+      "text": "How does decreasing the number of test examples affect overfitting? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The severity of overfitting does not change. Test-set size only changes the variance of the evaluation metric."
+        },
+        {
+          "id": "B",
+          "text": "Fewer test examples make the trained model overfit more."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Overfitting is a property of the trained model. The test set is only used to measure it."
+    },
+    {
+      "id": "70",
+      "title": "Overfitting: More parameters",
+      "text": "How does increasing the number of model parameters affect overfitting? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Overfitting increases, because the model has more capacity to memorize noise."
+        },
+        {
+          "id": "B",
+          "text": "Overfitting decreases, because extra parameters always generalize better."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Higher capacity makes memorization easier, so the overfitting risk goes up."
+    },
+    {
+      "id": "71",
+      "title": "Overfitting: Fewer parameters",
+      "text": "How does decreasing the number of model parameters affect overfitting? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Overfitting decreases."
+        },
+        {
+          "id": "B",
+          "text": "Overfitting increases."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "A smaller model has less capacity to fit noise."
+    },
+    {
+      "id": "72",
+      "title": "Overfitting: Purpose of early stopping",
+      "text": "What is the purpose of early stopping? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "It limits overfitting by stopping training before the model fits noise in the training set."
+        },
+        {
+          "id": "B",
+          "text": "Its purpose is to drive the training loss as low as possible, even after the validation loss starts rising."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Early stopping trades a lower training loss for better generalization."
+    },
+    {
+      "id": "73",
+      "title": "Overfitting: When to stop training",
+      "text": "When should early stopping halt training? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Stop when the validation loss stops improving and keeps increasing."
+        },
+        {
+          "id": "B",
+          "text": "Stop when the training loss starts to increase."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The signal is the validation loss, not the training loss."
+    },
+    {
+      "id": "74",
+      "title": "Overfitting: Stopping on a rising training loss",
+      "text": "Should we stop when the training loss begins to increase? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. Training loss usually keeps falling. What matters is the validation loss."
+        },
+        {
+          "id": "B",
+          "text": "Yes. A rising training loss is the early-stopping rule."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Training loss is not the early-stopping monitor. Validation loss is."
+    },
+    {
+      "id": "75",
+      "title": "Overfitting: Validation loss up, training loss down",
+      "text": "What does it mean when validation loss increases while training loss decreases? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The model is overfitting."
+        },
+        {
+          "id": "B",
+          "text": "The model is underfitting."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The model is still fitting the training set while getting worse on held-out data. That is overfitting."
+    },
+    {
+      "id": "76",
+      "title": "Overfitting: Parameters and hyperparameters",
+      "text": "Which statements about parameters and hyperparameters are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Parameters such as W and b are learned by gradient-based optimizers such as SGD or Adam."
+        },
+        {
+          "id": "B",
+          "text": "Hyperparameters such as the learning rate, the number of layers, and the batch size are set before training."
+        },
+        {
+          "id": "C",
+          "text": "Hyperparameters are chosen by a search, such as grid search, random search, or Bayesian optimization, not by gradient descent on the training loss."
+        },
+        {
+          "id": "D",
+          "text": "The learning rate is a parameter that SGD updates together with the weights."
+        }
+      ],
+      "correct": [
+        "A",
+        "B",
+        "C"
+      ],
+      "explanation": "Weights and biases are trained. Learning rate, depth, and batch size are chosen outside the gradient update."
+    },
+    {
+      "id": "77",
+      "title": "Overfitting: Pure SGD",
+      "text": "Which statements about pure SGD are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Pure SGD uses batch size 1 and computes the gradient from a single training example on each step."
+        },
+        {
+          "id": "B",
+          "text": "Pure SGD uses the entire training set on every step."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Pure SGD means one example per update. Using the full set is batch gradient descent."
+    },
+    {
+      "id": "78",
+      "title": "Overfitting: Increasing the batch size",
+      "text": "Compared with pure SGD, what happens when the batch size increases? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Gradient estimates become less noisy, so the trajectory is smoother."
+        },
+        {
+          "id": "B",
+          "text": "Hardware is used more efficiently, because more of the work can run in parallel on a GPU."
+        },
+        {
+          "id": "C",
+          "text": "An epoch takes fewer steps, but each step is more expensive."
+        },
+        {
+          "id": "D",
+          "text": "Gradient estimates become noisier as the batch gets larger."
+        }
+      ],
+      "correct": [
+        "A",
+        "B",
+        "C"
+      ],
+      "explanation": "A larger batch averages more examples. That reduces noise and uses the device better, at a higher cost per step."
+    },
+    {
+      "id": "79",
+      "title": "Overfitting: Decreasing the batch size",
+      "text": "What happens when the batch size decreases? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Gradient steps get noisier, which can help the optimizer leave sharp minima."
+        },
+        {
+          "id": "B",
+          "text": "The memory footprint gets smaller."
+        },
+        {
+          "id": "C",
+          "text": "An epoch gets slower because matrix parallelism is used less well."
+        },
+        {
+          "id": "D",
+          "text": "A smaller batch always uses more memory than a larger batch."
+        }
+      ],
+      "correct": [
+        "A",
+        "B",
+        "C"
+      ],
+      "explanation": "Smaller batches add noise, use less memory, and make poorer use of parallel hardware."
+    },
+    {
+      "id": "80",
+      "title": "Backprop: Chain rule",
+      "text": "Which statement of the chain rule, as used on a computational graph, is TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "∂J/∂x = (∂J/∂output) · (∂output/∂x)."
+        },
+        {
+          "id": "B",
+          "text": "∂J/∂x = ∂J/∂output + ∂output/∂x."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Backpropagation multiplies the upstream gradient by the local derivative. It does not add them."
+    },
+    {
+      "id": "81",
+      "title": "Backprop: Square node",
+      "text": "For a square node c = b^2, with grad_c = ∂J/∂c, which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "grad_b = grad_c · 2b."
+        },
+        {
+          "id": "B",
+          "text": "grad_b = grad_c · 2c."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "∂c/∂b = 2b, so the upstream gradient is multiplied by 2b. Multiplying by 2c is the wrong local derivative."
+    },
+    {
+      "id": "82",
+      "title": "Backprop: Addition node",
+      "text": "For an addition node c = a + b, with grad_c = ∂J/∂c, which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "grad_a = grad_c and grad_b = grad_c."
+        },
+        {
+          "id": "B",
+          "text": "grad_a = grad_c + b and grad_b = grad_c + a."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "∂c/∂a and ∂c/∂b are both 1, so both inputs receive the upstream gradient unchanged."
+    },
+    {
+      "id": "83",
+      "title": "NumPy attributes: Can shape be (5, 6)?",
+      "text": "my_array is a numpy.ndarray. Can my_array.shape be (5, 6)? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Yes. (5, 6) is a valid shape for a 2D array."
+        },
+        {
+          "id": "B",
+          "text": "No. A shape cannot be a tuple of two integers."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "shape is a tuple. (5, 6) describes a 2-dimensional array."
+    },
+    {
+      "id": "84",
+      "title": "NumPy attributes: Can shape be (1,)?",
+      "text": "Can my_array.shape be (1,)? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Yes. (1,) is a 1D array with one element."
+        },
+        {
+          "id": "B",
+          "text": "No. A shape tuple must contain at least two entries."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "A one-element tuple is a valid 1D shape."
+    },
+    {
+      "id": "85",
+      "title": "NumPy attributes: Can shape be (0, 1, 0)?",
+      "text": "Can my_array.shape be (0, 1, 0)? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Yes. (0, 1, 0) is a valid 3D shape, and the array has zero elements."
+        },
+        {
+          "id": "B",
+          "text": "No. A dimension of a shape is not allowed to be zero."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "NumPy allows zero-size dimensions. (0, 1, 0) is a legal empty 3D array."
+    },
+    {
+      "id": "86",
+      "title": "NumPy attributes: Can shape be the integer 12?",
+      "text": "Can my_array.shape be 12? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. shape is always a tuple, for example (12,), never a bare integer."
+        },
+        {
+          "id": "B",
+          "text": "Yes. shape can be the integer 12."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "shape is a tuple. The 1D shape with 12 elements is (12,), not 12."
+    },
+    {
+      "id": "87",
+      "title": "NumPy attributes: Can dtype be (5, 6)?",
+      "text": "Can my_array.dtype be (5, 6)? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. dtype is a data type, such as float64 or int32, not a shape."
+        },
+        {
+          "id": "B",
+          "text": "Yes. dtype stores the array's shape."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "dtype describes the element type. The shape is a different attribute."
+    },
+    {
+      "id": "88",
+      "title": "NumPy attributes: Can size be (5, 6)?",
+      "text": "Can my_array.size be (5, 6)? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. size is a scalar integer, the total number of elements."
+        },
+        {
+          "id": "B",
+          "text": "Yes. size can be a tuple such as (5, 6)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "size counts elements. It is not a tuple. The tuple (5, 6) would be a shape."
+    },
+    {
+      "id": "89",
+      "title": "NumPy attributes: Can size be 12?",
+      "text": "Can my_array.size be 12? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Yes. An array of shape (3, 4), for example, has size 12."
+        },
+        {
+          "id": "B",
+          "text": "No. size must be a tuple."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "size is the product of the dimensions, so (3, 4) has size 12."
+    },
+    {
+      "id": "90",
+      "title": "NumPy attributes: Can ndim be (5, 6)?",
+      "text": "Can my_array.ndim be (5, 6)? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. ndim is a scalar integer, the number of axes."
+        },
+        {
+          "id": "B",
+          "text": "Yes. ndim stores the shape tuple."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "ndim is the length of the shape, not the shape itself. A shape (5, 6) has ndim 2."
+    },
+    {
+      "id": "91",
+      "title": "NumPy slicing: Shape of my_array[:, :]",
+      "text": "Let my_array have shape (32, 5). Which statements about my_array[:, :] are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (32, 5)."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (32,)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Slicing every row and every column keeps the original shape."
+    },
+    {
+      "id": "92",
+      "title": "NumPy slicing: Shape of my_array[:, 1]",
+      "text": "Let my_array have shape (32, 5). Which statements about my_array[:, 1] are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (32,). An integer index drops that axis."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (32, 1). The indexed axis is kept."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Indexing column 1 with an integer removes that axis, leaving one value per row."
+    },
+    {
+      "id": "93",
+      "title": "NumPy slicing: Shape of my_array[1, :]",
+      "text": "Let my_array have shape (32, 5). Which statements about my_array[1, :] are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (5,). An integer index drops that axis."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (1, 5)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Indexing row 1 with an integer returns that row as a 1D array of length 5."
+    },
+    {
+      "id": "94",
+      "title": "NumPy slicing: Shape of my_array[1:, :]",
+      "text": "Let my_array have shape (32, 5). Which statements about my_array[1:, :] are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (31, 5)."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (32, 5)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The slice 1: drops only the first row, so 31 rows remain and all 5 columns stay."
+    },
+    {
+      "id": "95",
+      "title": "NumPy slicing: Shape of my_array[0, :-1]",
+      "text": "Let my_array have shape (32, 5). Which statements about my_array[0, :-1] are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (4,)."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (1, 4)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Row 0 is selected with an integer, and :-1 keeps 4 of the 5 columns, so the result is 1D with length 4."
+    },
+    {
+      "id": "96",
+      "title": "NumPy slicing: Shape of my_array[[0], :]",
+      "text": "Let my_array have shape (32, 5). Which statements about my_array[[0], :] are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (1, 5). A list index keeps the axis."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (5,), because any row selection drops the axis."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Indexing with the list [0] is fancy indexing, so the row axis is preserved as length 1."
+    },
+    {
+      "id": "97",
+      "title": "NumPy slicing: Shape of my_array[[-1, -1], -1]",
+      "text": "Let my_array have shape (32, 5). Which statements about my_array[[-1, -1], -1] are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (2,). It selects the last column at rows −1 and −1."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (2, 5)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The row index picks two rows (both the last row) and the integer column index drops the column axis, leaving 2 elements."
+    },
+    {
+      "id": "98",
+      "title": "NumPy broadcasting: my_array1 + my_array2",
+      "text": "Let my_array1 have shape (32, 5) and a numeric dtype. my_array2 has shape (32,) where it is mentioned. For my_array1 + my_array2, which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "It raises ValueError. The trailing dimensions 5 and 32 cannot be broadcast together."
+        },
+        {
+          "id": "B",
+          "text": "It succeeds and the result has shape (32, 5)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Aligning (32, 5) with (32,) compares 5 against 32 on the last axis, and those sizes disagree."
+    },
+    {
+      "id": "99",
+      "title": "NumPy broadcasting: my_array1 + my_array2[:, None]",
+      "text": "Let my_array1 have shape (32, 5) and a numeric dtype. my_array2 has shape (32,) where it is mentioned. my_array2[:, None] has shape (32, 1). For my_array1 + my_array2[:, None], which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "It does not raise ValueError, and the result has shape (32, 5)."
+        },
+        {
+          "id": "B",
+          "text": "It raises ValueError because 32 and 5 disagree."
+        },
+        {
+          "id": "C",
+          "text": "It succeeds, but the result has shape (32, 1)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "(32, 1) broadcasts across the 5 columns of (32, 5), so the sum has shape (32, 5)."
+    },
+    {
+      "id": "100",
+      "title": "NumPy broadcasting: my_array1 + my_array2[None, :]",
+      "text": "Let my_array1 have shape (32, 5) and a numeric dtype. my_array2 has shape (32,) where it is mentioned. my_array2[None, :] has shape (1, 32). For my_array1 + my_array2[None, :], which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "It raises ValueError, because the dimension 32 does not match 5."
+        },
+        {
+          "id": "B",
+          "text": "It succeeds and the result has shape (32, 5)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The last axes are 5 and 32. Neither is 1, and they are not equal, so broadcasting fails."
+    },
+    {
+      "id": "101",
+      "title": "NumPy broadcasting: my_array1 + 1",
+      "text": "Let my_array1 have shape (32, 5) and a numeric dtype. my_array2 has shape (32,) where it is mentioned. For my_array1 + 1, which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "It does not raise ValueError. A scalar broadcasts to any shape."
+        },
+        {
+          "id": "B",
+          "text": "It raises ValueError, because a scalar has no shape to align."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Scalars broadcast to every element, so adding 1 is valid."
+    },
+    {
+      "id": "102",
+      "title": "NumPy reductions: Shape of my_array < 0",
+      "text": "Let my_array have shape (32, 5). Which statements about my_array < 0 are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (32, 5) and is a boolean array."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (32,), with one boolean per row."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Comparison is elementwise, so the boolean array keeps the original shape."
+    },
+    {
+      "id": "103",
+      "title": "NumPy reductions: Shape of my_array.T",
+      "text": "Let my_array have shape (32, 5). Which statements about my_array.T are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (5, 32)."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (32, 5)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Transpose swaps the two axes."
+    },
+    {
+      "id": "104",
+      "title": "NumPy reductions: Shape of my_array.T.T",
+      "text": "Let my_array have shape (32, 5). Which statements about my_array.T.T are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (32, 5)."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (5, 32)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Transposing twice returns the original axis order."
+    },
+    {
+      "id": "105",
+      "title": "NumPy reductions: Shape of my_array + my_array",
+      "text": "Let my_array have shape (32, 5). Which statements about my_array + my_array are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (32, 5)."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (64, 5)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Adding an array to itself is elementwise and does not change the shape."
+    },
+    {
+      "id": "106",
+      "title": "NumPy reductions: Shape of my_array + my_array[:, None, :]",
+      "text": "Let my_array have shape (32, 5). my_array[:, None, :] has shape (32, 1, 5). Which statements about my_array + my_array[:, None, :] are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (32, 32, 5). The shapes (32, 5) and (32, 1, 5) broadcast to that."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (32, 1, 5)."
+        },
+        {
+          "id": "C",
+          "text": "It raises ValueError."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "(32, 5) is aligned on the right as (32, 5) against (32, 1, 5). The new middle axis expands from 1 to 32."
+    },
+    {
+      "id": "107",
+      "title": "NumPy reductions: Shape of np.mean on axis 0",
+      "text": "Let my_array have shape (32, 5). Which statements about np.mean(my_array, axis=0) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (5,). Axis 0 is collapsed."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (32,)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Averaging over axis 0 removes the 32 rows and leaves the 5 columns."
+    },
+    {
+      "id": "108",
+      "title": "NumPy reductions: Shape of np.mean on axis 1",
+      "text": "Let my_array have shape (32, 5). Which statements about np.mean(my_array, axis=1) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (32,). Axis 1 is collapsed."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (5,)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Averaging over axis 1 removes the 5 columns and leaves one mean per row."
+    },
+    {
+      "id": "109",
+      "title": "NumPy reductions: Type of a sum over an axis",
+      "text": "Let my_array have shape (32, 5). Will type(np.sum(my_array, axis=0)) be numpy.ndarray? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Yes. Summing over one axis still returns a numpy.ndarray."
+        },
+        {
+          "id": "B",
+          "text": "No. Any call to np.sum returns a NumPy scalar."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Keeping an axis in the output means the result is still an array, here of shape (5,)."
+    },
+    {
+      "id": "110",
+      "title": "NumPy reductions: Type of a sum over the whole array",
+      "text": "Let my_array have shape (32, 5). Will type(np.sum(my_array)) be numpy.ndarray? Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. A sum with no axis returns a NumPy scalar, such as np.int64 or np.float64."
+        },
+        {
+          "id": "B",
+          "text": "Yes. np.sum always returns a numpy.ndarray."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Reducing every axis leaves a 0-dimensional NumPy scalar, not an ndarray."
+    },
+    {
+      "id": "111",
+      "title": "NumPy transforms: Shape of the reshaped arange",
+      "text": "Let my_array = np.arange(4).reshape(2, -1), so my_array is [[0, 1], [2, 3]] with shape (2, 2). Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "my_array has shape (2, 2)."
+        },
+        {
+          "id": "B",
+          "text": "my_array contains [[0, 1], [2, 3]]."
+        },
+        {
+          "id": "C",
+          "text": "my_array has shape (4,)."
+        }
+      ],
+      "correct": [
+        "A",
+        "B"
+      ],
+      "explanation": "np.arange(4) is [0, 1, 2, 3], and reshape(2, -1) makes a 2 by 2 matrix."
+    },
+    {
+      "id": "112",
+      "title": "NumPy transforms: Shape of my_array * 2 + 1",
+      "text": "Let my_array = np.arange(4).reshape(2, -1), so my_array is [[0, 1], [2, 3]] with shape (2, 2). Which statements about my_array * 2 + 1 are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (2, 2)."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (4,)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Scaling and adding a scalar are elementwise, so the shape stays (2, 2)."
+    },
+    {
+      "id": "113",
+      "title": "NumPy transforms: Shape of a positive mask",
+      "text": "Let my_array = np.arange(4).reshape(2, -1), so my_array is [[0, 1], [2, 3]] with shape (2, 2). Which statements about my_array[my_array > 0] are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (3,). Boolean masking flattens the selected elements into 1D."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (2, 2)."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The entries greater than 0 are 1, 2, and 3. Boolean indexing returns them as a 1D array."
+    },
+    {
+      "id": "114",
+      "title": "NumPy transforms: Shape of the positive even mask",
+      "text": "Let my_array = np.arange(4).reshape(2, -1), so my_array is [[0, 1], [2, 3]] with shape (2, 2). Which statements about my_array[(my_array > 0) & (my_array % 2 == 0)] are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result has shape (1,). The only matching value is 2."
+        },
+        {
+          "id": "B",
+          "text": "The result has shape (2,), because both 2 and 0 match."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "0 is even but not positive. 1 and 3 are positive but odd. Only 2 satisfies both tests."
+    },
+    {
+      "id": "115",
+      "title": "NumPy transforms: Broadcast with reshape(2, 2, -1)",
+      "text": "Let my_array = np.arange(4).reshape(2, -1), so my_array is [[0, 1], [2, 3]] with shape (2, 2). Which statements about my_array * my_array.reshape(2, 2, -1) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "reshape(2, 2, -1) has shape (2, 2, 1), and multiplying by my_array of shape (2, 2) broadcasts to (2, 2, 2)."
+        },
+        {
+          "id": "B",
+          "text": "The product has shape (2, 2)."
+        },
+        {
+          "id": "C",
+          "text": "The product raises ValueError."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "(2, 2) aligns to the right of (2, 2, 1) and expands the last axis from 1 to 2, giving (2, 2, 2)."
+    },
+    {
+      "id": "116",
+      "title": "NumPy views: reshape returns a view",
+      "text": "Let my_array = np.arange(4). After my_array2[:] = 99, is the original my_array affected? my_array2 = my_array.reshape(2, 2). Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Yes. reshape returns a view, so writing into my_array2 also changes my_array."
+        },
+        {
+          "id": "B",
+          "text": "No. reshape returns a copy, so my_array is unchanged."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "reshape shares the original data buffer when it can return a view."
+    },
+    {
+      "id": "117",
+      "title": "NumPy views: transpose returns a view",
+      "text": "Let my_array = np.arange(4). After my_array2[:] = 99, is the original my_array affected? my_array2 = my_array.T. Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Yes. Transpose returns a view, so writing into my_array2 also changes my_array."
+        },
+        {
+          "id": "B",
+          "text": "No. Transpose always copies the data."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The transpose is another view of the same buffer."
+    },
+    {
+      "id": "118",
+      "title": "NumPy views: np.append returns a copy",
+      "text": "Let my_array = np.arange(4). After my_array2[:] = 99, is the original my_array affected? my_array2 = np.append(my_array, 42). Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. np.append allocates a new array, so my_array is unchanged."
+        },
+        {
+          "id": "B",
+          "text": "Yes. np.append returns a view of my_array."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "append cannot extend the original buffer in place, so the result is a new array."
+    },
+    {
+      "id": "119",
+      "title": "NumPy views: A basic slice is a view",
+      "text": "Let my_array = np.arange(4). After my_array2[:] = 99, is the original my_array affected? my_array2 = my_array[1:2]. Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Yes. Basic slicing returns a view, so writing into my_array2 also changes my_array."
+        },
+        {
+          "id": "B",
+          "text": "No. A slice such as 1:2 always copies the data."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "A slice with a colon is a view, not a copy."
+    },
+    {
+      "id": "120",
+      "title": "NumPy views: Fancy indexing copies",
+      "text": "Let my_array = np.arange(4). After my_array2[:] = 99, is the original my_array affected? my_array2 = my_array[[1, 2]]. Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. Indexing with an integer list copies the data, so my_array is unchanged."
+        },
+        {
+          "id": "B",
+          "text": "Yes. The list [1, 2] is a basic slice and returns a view."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Integer-array indexing, also called fancy indexing, returns a copy."
+    },
+    {
+      "id": "121",
+      "title": "NumPy views: Boolean indexing copies",
+      "text": "Let my_array = np.arange(4). After my_array2[:] = 99, is the original my_array affected? my_array2 = my_array[my_array < 2]. Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. Boolean indexing returns a copy, so my_array is unchanged."
+        },
+        {
+          "id": "B",
+          "text": "Yes. A boolean mask returns a view."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Selecting with a mask gathers elements into a new array."
+    },
+    {
+      "id": "122",
+      "title": "NumPy views: Arithmetic returns a new array",
+      "text": "Let my_array = np.arange(4). After my_array2[:] = 99, is the original my_array affected? my_array2 = my_array + my_array. Which statements are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No. Arithmetic returns a new array, so my_array is unchanged."
+        },
+        {
+          "id": "B",
+          "text": "Yes. my_array + my_array is a view of my_array."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Adding two arrays allocates the result. It does not alias the inputs."
+    },
+    {
+      "id": "123",
+      "title": "NumPy functions: count_nonzero of zeros",
+      "text": "Let my_array = np.arange(4).reshape(2, -1), so my_array is [[0, 1], [2, 3]]. Which statements about np.count_nonzero(my_array == 0) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result is 1."
+        },
+        {
+          "id": "B",
+          "text": "The result is 0, because the array has no zeros."
+        },
+        {
+          "id": "C",
+          "text": "The result is 4."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "The matrix contains a single 0, in the top-left entry."
+    },
+    {
+      "id": "124",
+      "title": "NumPy functions: any zero",
+      "text": "Let my_array = np.arange(4).reshape(2, -1), so my_array is [[0, 1], [2, 3]]. Which statements about np.any(my_array == 0) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result is True."
+        },
+        {
+          "id": "B",
+          "text": "The result is False."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "There is at least one zero, so np.any of the comparison is True."
+    },
+    {
+      "id": "125",
+      "title": "NumPy functions: all zeros along axis 1",
+      "text": "Let my_array = np.arange(4).reshape(2, -1), so my_array is [[0, 1], [2, 3]]. Which statements about np.all(my_array == 0, axis=1) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result is array([False, False])."
+        },
+        {
+          "id": "B",
+          "text": "The result is array([True, False]), because the first row starts with 0."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "Neither row is entirely zero. The first row is [0, 1] and the second is [2, 3]."
+    },
+    {
+      "id": "126",
+      "title": "NumPy functions: unique values",
+      "text": "Let my_array = np.array([3, 1, 2]). Which statements about np.unique(my_array) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result is array([1, 2, 3]). Unique values are returned in sorted order."
+        },
+        {
+          "id": "B",
+          "text": "The result is array([3, 1, 2]), the original order."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "np.unique sorts the distinct values, so 1, 2, 3 come out in that order."
+    },
+    {
+      "id": "127",
+      "title": "NumPy functions: unique of a comparison",
+      "text": "Let my_array = np.array([3, 1, 2]). Which statements about np.unique(my_array == 0) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result is array([False]). Every element is nonzero, so the comparison is all False."
+        },
+        {
+          "id": "B",
+          "text": "The result is array([True, False])."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "3, 1, and 2 are all nonzero. The boolean array has only False, and unique keeps that one value."
+    },
+    {
+      "id": "128",
+      "title": "NumPy functions: bincount",
+      "text": "Let my_array = np.array([3, 1, 2]). Which statements about np.bincount(my_array) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result is array([0, 1, 1, 1]). It counts how often the indices 0, 1, 2, and 3 occur."
+        },
+        {
+          "id": "B",
+          "text": "The result is array([1, 1, 1]), one count for each stored value."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "There is no 0, one 1, one 2, and one 3, so the counts are [0, 1, 1, 1]."
+    },
+    {
+      "id": "129",
+      "title": "NumPy functions: sort reversed",
+      "text": "Let my_array = np.array([3, 1, 2]). Which statements about np.sort(my_array)[::-1] are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result is array([3, 2, 1])."
+        },
+        {
+          "id": "B",
+          "text": "The result is array([1, 2, 3])."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "np.sort returns [1, 2, 3], and reversing that slice gives [3, 2, 1]."
+    },
+    {
+      "id": "130",
+      "title": "NumPy functions: argsort",
+      "text": "Let my_array = np.array([3, 1, 2]). Which statements about np.argsort(my_array) are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result is array([1, 2, 0]). Value 1 is at index 1, value 2 is at index 2, and value 3 is at index 0."
+        },
+        {
+          "id": "B",
+          "text": "The result is array([0, 1, 2])."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "argsort returns positions in ascending value order, not the values themselves."
+    },
+    {
+      "id": "131",
+      "title": "NumPy functions: Mask of nonzero entries",
+      "text": "Let my_array = np.array([3, 1, 2]). Which statements about my_array[my_array != 0] are TRUE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The result is array([3, 1, 2])."
+        },
+        {
+          "id": "B",
+          "text": "The result is an empty array, because the mask removes every element."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "None of 3, 1, or 2 is zero, so the mask keeps every element in the original order."
+    }
+  ]
+}
