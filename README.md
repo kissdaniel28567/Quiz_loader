@@ -16,6 +16,18 @@ Open the URL it prints (http://127.0.0.1:8000 by default). No extra packages are
 python3 app.py --port 8080
 ```
 
+## Host on GitHub Pages
+
+The static version is deployed automatically by `.github/workflows/pages.yml` when changes are pushed to `main` (or when the workflow is run manually). In the repository settings, set **Pages → Build and deployment → Source** to **GitHub Actions**.
+
+To build the site locally:
+
+```bash
+python3 build_site.py
+```
+
+The generated site is written to `site/`. The static version supports the quiz and scoring flow, but GitHub Pages cannot accept uploads or save datasets. To add or replace a quiz, add its JSON file to `datasets/` and publish again. Static datasets are downloaded by each visitor, so their correct answers and explanations are visible in the browser; do not use this version for confidential exam answers.
+
 ## Datasets
 
 Quizzes are JSON files in `datasets/`. The main page lists every valid file.
